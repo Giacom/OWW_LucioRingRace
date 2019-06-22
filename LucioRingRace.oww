@@ -782,6 +782,7 @@ rule("ON: Player Leaves Spawn")
 	conditions
 	{
 		Distance Between(Global Variable(C), Position Of(Event Player)) >= Global Variable(W);
+		Player Variable(Event Player, F) <= 0;
 	}
 
 	actions
@@ -802,6 +803,7 @@ rule("ON: Player In Spawn")
 	conditions
 	{
 		Distance Between(Global Variable(C), Position Of(Event Player)) < Global Variable(W);
+		Player Variable(Event Player, F) <= 0;
 	}
 
 	actions
