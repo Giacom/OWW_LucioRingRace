@@ -485,6 +485,7 @@ rule("SETUP: Global Vars")
 		Set Global Variable(Y, Empty Array);
 		Create HUD Text(All Players(All Teams), Null, String("{0}:", String("Crouch", Null, Null, Null), Null, Null), String("Try Again",
 			Null, Null, Null), Right, -10.000, Red, Red, White, Visible To and String);
+		Set Global Variable(W, 4);
 	}
 }
 
@@ -506,8 +507,7 @@ rule("SETUP: Player Vars")
 	{
 		Set Player Variable(Event Player, F, 0);
 		Set Player Variable(Event Player, H, 0);
-		Set Player Variable(Event Player, T, 999.990);
-		Chase Player Variable Over Time(Event Player, H, 9999, 9999, Destination and Duration);
+		Set Player Variable(Event Player, Z, 999.990);
 		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Time", Null, Null, Null), Player Variable(Event Player, H),
 			Null), Event Player, 2, Clip Against Surfaces, Visible To Position and String);
 		Create HUD Text(Event Player, Null, Null, String("{0}: {1}", String("Time", Null, Null, Null), String("{0} sec", Player Variable(
@@ -594,6 +594,19 @@ rule("SETUP: Create Teleporters")
 		Modify Global Variable(L, Add, 1);
 		Wait(0.016, Ignore Condition);
 		Loop If(Compare(Global Variable(L), <, Count Of(Global Variable(T))));
+	}
+}
+
+rule("SETUP: Create Spawn Ring")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Ring, Blue, Global Variable(C), Global Variable(W), Visible To Position and Radius);
 	}
 }
 
@@ -753,7 +766,48 @@ rule("ON: Finished Race - Update Personal Record")
 
 	actions
 	{
-		Set Player Variable(Event Player, T, Min(Player Variable(Event Player, H), Player Variable(Event Player, T)));
+		Set Player Variable(Event Player, Z, Min(Player Variable(Event Player, H), Player Variable(Event Player, Z)));
+	}
+}
+
+rule("ON: Player Leaves Spawn")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Global Variable(C), Position Of(Event Player)) >= Global Variable(W);
+	}
+
+	actions
+	{
+		Chase Player Variable Over Time(Event Player, H, 9999, 9999, Destination and Duration);
+	}
+}
+
+rule("ON: Player In Spawn")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Global Variable(C), Position Of(Event Player)) < Global Variable(W);
+	}
+
+	actions
+	{
+		Stop Chasing Player Variable(Event Player, H);
+		Set Player Variable(Event Player, H, 0);
 	}
 }
 
@@ -768,8 +822,8 @@ rule("LOOP: Update Records")
 	{
 		Skip If(Compare(Count Of(All Players(All Teams)), <=, 0), 5);
 		Set Global Variable(P, Array Slice(Sorted Array(Filtered Array(Filtered Array(All Players(All Teams), Has Spawned(
-			Current Array Element)), Compare(Player Variable(Current Array Element, T), <, 999.990)), Player Variable(
-			Current Array Element, T)), 0, 3));
+			Current Array Element)), Compare(Player Variable(Current Array Element, Z), <, 999.990)), Player Variable(
+			Current Array Element, Z)), 0, 3));
 		Skip If(Compare(Count Of(Global Variable(P)), >=, 3), 1);
 		Modify Global Variable(P, Append To Array, Hero(Lúcio));
 		Skip If(Compare(Count Of(Global Variable(P)), >=, 3), 1);
@@ -777,9 +831,9 @@ rule("LOOP: Update Records")
 		Skip If(Compare(Count Of(Global Variable(P)), >=, 3), 1);
 		Modify Global Variable(P, Append To Array, Hero(Lúcio));
 		Set Global Variable(Z, Empty Array);
-		Modify Global Variable(Z, Append To Array, Player Variable(Value In Array(Global Variable(P), 0), T));
-		Modify Global Variable(Z, Append To Array, Player Variable(Value In Array(Global Variable(P), 1), T));
-		Modify Global Variable(Z, Append To Array, Player Variable(Value In Array(Global Variable(P), 2), T));
+		Modify Global Variable(Z, Append To Array, Player Variable(Value In Array(Global Variable(P), 0), Z));
+		Modify Global Variable(Z, Append To Array, Player Variable(Value In Array(Global Variable(P), 1), Z));
+		Modify Global Variable(Z, Append To Array, Player Variable(Value In Array(Global Variable(P), 2), Z));
 		Wait(1, Ignore Condition);
 		Loop;
 	}
