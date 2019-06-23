@@ -25,7 +25,6 @@ rule("DEBUG: Setup Global Debug")
 
 	actions
 	{
-		Set Global Variable(M, Nearest Walkable Position(Vector(0, 0, 0)));
 		Create HUD Text(All Players(All Teams), String("{0}: {1}", String("Ready", Null, Null, Null), Count Of(Global Variable(E)), Null),
 			Null, Null, Right, 0, White, White, White, Visible To and String);
 		Create HUD Text(All Players(All Teams), String("{0}: {1}", String("Waiting", Null, Null, Null), Count Of(Global Variable(N)),
@@ -34,32 +33,7 @@ rule("DEBUG: Setup Global Debug")
 			Null, Null), Null), String("{0}: {1}", String("Right", Null, Null, Null), String("Saved", Null, Null, Null), Null), String(
 			"{0}: {1}", String("Use Ability 1", Null, Null, Null), String("Backward", Null, Null, Null), Null), Right, 0, White, White,
 			White, Visible To and String);
-	}
-}
-
-rule("DEBUG: Coordinate Finding (Primary Fire)")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Is Button Held(Event Player, Primary Fire) == True;
-		Global Variable(I) == True;
-	}
-
-	actions
-	{
-		Set Player Variable(Event Player, C, Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(Facing Direction Of(
-			Event Player), 1000), Position Of(Event Player)), Empty Array, Event Player, False));
-		Set Player Variable(Event Player, C, Vector(Round To Integer(X Component Of(Player Variable(Event Player, C)), To Nearest),
-			Round To Integer(Y Component Of(Player Variable(Event Player, C)), To Nearest), Round To Integer(Z Component Of(
-			Player Variable(Event Player, C)), To Nearest)));
-		Play Effect(All Players(All Teams), Good Explosion, White, Player Variable(Event Player, C), 0.200);
+		Set Global Variable(M, Nearest Walkable Position(Vector(0, 0, 0)));
 	}
 }
 
@@ -81,12 +55,41 @@ rule("DEBUG: Display Coordinates")
 	{
 		Create HUD Text(All Players(All Teams), Null, Event Player, Player Variable(Event Player, C), Left, 0, White, Blue, White,
 			Visible To and String);
-		Set Global Variable(M, Nearest Walkable Position(Vector(0, 0, 0)));
 		Set Global Variable(N, Empty Array);
+		Create HUD Text(Event Player, Null, String("{0} {1}", String("Save", Null, Null, Null), String("{0}:", String("Status", Null, Null,
+			Null), Null, Null), Null), Player Variable(Event Player, X), Right, 10, Red, Red, White, Visible To and String);
+		Set Player Variable(Event Player, X, False);
 	}
 }
 
-rule("DEBUG: Save Ring (Secondary Fire)")
+rule("DEBUG - CREATE MODE: Coordinate Finding (Primary Fire)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Primary Fire) == True;
+		Global Variable(I) == True;
+		Player Variable(Event Player, X) == False;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, C, Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(Facing Direction Of(
+			Event Player), 1000), Position Of(Event Player)), Empty Array, Event Player, False));
+		Set Player Variable(Event Player, C, Vector(Round To Integer(X Component Of(Player Variable(Event Player, C)), To Nearest),
+			Round To Integer(Y Component Of(Player Variable(Event Player, C)), To Nearest), Round To Integer(Z Component Of(
+			Player Variable(Event Player, C)), To Nearest)));
+		Play Effect(All Players(All Teams), Good Explosion, White, Player Variable(Event Player, C), 0.200);
+	}
+}
+
+rule("DEBUG - CREATE MODE: Save Ring (Secondary Fire)")
 {
 	event
 	{
@@ -100,6 +103,7 @@ rule("DEBUG: Save Ring (Secondary Fire)")
 		Global Variable(I) == True;
 		Is Button Held(Event Player, Secondary Fire) == True;
 		Array Contains(Global Variable(N), Player Variable(Event Player, C)) == False;
+		Player Variable(Event Player, X) == False;
 	}
 
 	actions
@@ -111,7 +115,7 @@ rule("DEBUG: Save Ring (Secondary Fire)")
 	}
 }
 
-rule("DEBUG: Undo Ring (Interact)")
+rule("DEBUG - CREATE MODE: Undo Ring (Interact)")
 {
 	event
 	{
@@ -124,6 +128,7 @@ rule("DEBUG: Undo Ring (Interact)")
 	{
 		Global Variable(I) == True;
 		Is Button Held(Event Player, Interact) == True;
+		Player Variable(Event Player, X) == False;
 	}
 
 	actions
@@ -135,7 +140,7 @@ rule("DEBUG: Undo Ring (Interact)")
 	}
 }
 
-rule("DEBUG: Play Rings (Ultimate)")
+rule("DEBUG - CREATE MODE: Play Rings (Ultimate)")
 {
 	event
 	{
@@ -148,6 +153,7 @@ rule("DEBUG: Play Rings (Ultimate)")
 	{
 		Global Variable(I) == True;
 		Is Button Held(Event Player, Ultimate) == True;
+		Player Variable(Event Player, X) == False;
 	}
 
 	actions
@@ -155,6 +161,88 @@ rule("DEBUG: Play Rings (Ultimate)")
 		Play Effect(All Players(All Teams), Buff Explosion Sound, Green, Event Player, 75);
 		Set Global Variable(E, Global Variable(N));
 		Big Message(Event Player, String("Ready", Null, Null, Null));
+	}
+}
+
+rule("DEBUG: Toggle Save Mode - Teleport to the rings so you can save them in the editor easily")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		And(Is Button Held(Event Player, Jump), Is Button Held(Event Player, Primary Fire)) == True;
+		Global Variable(I) == True;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, X, Not(Player Variable(Event Player, X)));
+		Set Player Variable(Event Player, Y, 0);
+		Set Player Variable(Event Player, F, 0);
+		Skip If(Compare(Player Variable(Event Player, X), ==, False), 3);
+		Big Message(All Players(All Teams), String("{0} {1}", String("Save", Null, Null, Null), String("Status", Distance Between(Vector(0,
+			0, 0), Vector(0, 0, 0)), Null, Null), Null));
+		Start Camera(Event Player, Value In Array(Global Variable(E), Player Variable(Event Player, Y)), Value In Array(Global Variable(E),
+			Add(Player Variable(Event Player, Y), 1)), 0);
+		Skip(1);
+		Stop Camera(Event Player);
+	}
+}
+
+rule("DEBUG - SAVE MODE: Go to next ring")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Secondary Fire) == True;
+		Global Variable(I) == True;
+		Player Variable(Event Player, X) == True;
+		Compare(Player Variable(Event Player, Y), <, Subtract(Count Of(Global Variable(E)), 1)) == True;
+	}
+
+	actions
+	{
+		Modify Player Variable(Event Player, Y, Add, 1);
+		Big Message(All Players(All Teams), String("{0} {1}", String("Checkpoint", Null, Null, Null), Add(Player Variable(Event Player, Y),
+			1), Null));
+		Set Player Variable(Event Player, F, Player Variable(Event Player, Y));
+	}
+}
+
+rule("DEBUG - SAVE MODE: Go to previous ring")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Primary Fire) == True;
+		Global Variable(I) == True;
+		Player Variable(Event Player, X) == True;
+		Compare(Player Variable(Event Player, Y), >, 0) == True;
+	}
+
+	actions
+	{
+		Modify Player Variable(Event Player, Y, Subtract, 1);
+		Big Message(All Players(All Teams), String("{0} {1}", String("Checkpoint", Null, Null, Null), Add(Player Variable(Event Player, Y),
+			1), Null));
+		Set Player Variable(Event Player, F, Player Variable(Event Player, Y));
 	}
 }
 
@@ -387,6 +475,61 @@ rule("MAP: Temple of Anubis Rings by Giacomand")
 	}
 }
 
+rule("MAP: Kings Row Rings by Giacomand")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Distance Between(Nearest Walkable Position(Vector(0, 100, 0)), Vector(2.630, 6.300, 0.380)) < 0.010;
+	}
+
+	actions
+	{
+		Set Global Variable(C, Vector(16.858, 7.173, 16.918));
+		Set Global Variable(T, Empty Array);
+		Set Global Variable(U, Empty Array);
+		Set Global Variable(E, Empty Array);
+		Modify Global Variable(E, Append To Array, Vector(8, 8, 14));
+		Modify Global Variable(E, Append To Array, Vector(3, 7, 5));
+		Modify Global Variable(E, Append To Array, Vector(-5.000, 2, -13.000));
+		Modify Global Variable(E, Append To Array, Vector(-15.000, 2, -25.000));
+		Modify Global Variable(E, Append To Array, Vector(-32.000, 2, -27.000));
+		Modify Global Variable(E, Append To Array, Vector(-58.000, 1, -30.000));
+		Modify Global Variable(E, Append To Array, Vector(-71.000, 2, -24.000));
+		Modify Global Variable(E, Append To Array, Vector(-85.000, 2, -20.000));
+		Skip If(Compare(False, ==, True), 0);
+		Modify Global Variable(E, Append To Array, Vector(-94.000, 2, -16.000));
+		Modify Global Variable(E, Append To Array, Vector(-116.000, 0, -1.000));
+		Modify Global Variable(E, Append To Array, Vector(-127.000, 0, 14));
+		Modify Global Variable(E, Append To Array, Vector(-139.000, -2.000, 31));
+		Modify Global Variable(E, Append To Array, Vector(-149.000, 2, 42));
+		Modify Global Variable(E, Append To Array, Vector(-158.000, 6, 40));
+		Modify Global Variable(E, Append To Array, Vector(-147.000, 0, 34));
+		Modify Global Variable(E, Append To Array, Vector(-138.000, 0, 29));
+		Modify Global Variable(E, Append To Array, Vector(-127.000, 1, 14));
+		Modify Global Variable(E, Append To Array, Vector(-115.000, 1, -1.000));
+		Skip If(Compare(False, ==, True), 0);
+		Modify Global Variable(E, Append To Array, Vector(-102.000, 2, -13.000));
+		Modify Global Variable(E, Append To Array, Vector(-94.000, 3, -17.000));
+		Modify Global Variable(E, Append To Array, Vector(-90.000, 3, -34.000));
+		Modify Global Variable(E, Append To Array, Vector(-82.000, 2, -45.000));
+		Modify Global Variable(E, Append To Array, Vector(-73.000, 4, -46.000));
+		Modify Global Variable(E, Append To Array, Vector(-62.000, 2, -46.000));
+		Modify Global Variable(E, Append To Array, Vector(-53.000, 2, -39.000));
+		Modify Global Variable(E, Append To Array, Vector(-49.000, 1, -28.000));
+		Modify Global Variable(E, Append To Array, Vector(-38.000, 2, -22.000));
+		Modify Global Variable(E, Append To Array, Vector(-19.000, 2, -26.000));
+		Skip If(Compare(False, ==, True), 0);
+		Modify Global Variable(E, Append To Array, Vector(-6.000, 3, -25.000));
+		Modify Global Variable(E, Append To Array, Vector(-2.000, 8, -25.000));
+		Modify Global Variable(E, Append To Array, Vector(-3.000, 14, -24.000));
+	}
+}
+
 rule("MAP: Nepal by Fahzix")
 {
 	event
@@ -512,6 +655,9 @@ rule("SETUP: Player Vars")
 			Null), Event Player, 2, Clip Against Surfaces, Visible To Position and String);
 		Create HUD Text(Event Player, Null, Null, String("{0}: {1}", String("Time", Null, Null, Null), String("{0} sec", Player Variable(
 			Event Player, H), Null, Null), Null), Left, -10.000, White, Red, White, Visible To and String);
+		Create HUD Text(Event Player, Null, Null, String("{0}: {1}", String("{0} {1}", String("Best", Null, Null, Null), String("Record",
+			Null, Null, Null), Null), String("{0} sec", Player Variable(Event Player, Z), Null, Null), Null), Left, -9.000, White, Red,
+			White, Visible To and String);
 		Set Player Variable(Event Player, S, True);
 	}
 }
