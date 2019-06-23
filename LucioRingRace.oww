@@ -525,8 +525,6 @@ rule("MAP: Kings Row Rings by Giacomand")
 		Modify Global Variable(E, Append To Array, Vector(-19.000, 2, -26.000));
 		Skip If(Compare(False, ==, True), 0);
 		Modify Global Variable(E, Append To Array, Vector(-6.000, 3, -25.000));
-		Modify Global Variable(E, Append To Array, Vector(-2.000, 8, -25.000));
-		Modify Global Variable(E, Append To Array, Vector(-3.000, 14, -24.000));
 	}
 }
 
@@ -626,9 +624,11 @@ rule("SETUP: Global Vars")
 		Set Global Variable(B, 5);
 		Set Global Variable(H, 0);
 		Set Global Variable(Y, Empty Array);
-		Create HUD Text(All Players(All Teams), Null, String("{0}:", String("Crouch", Null, Null, Null), Null, Null), String("Try Again",
-			Null, Null, Null), Right, -10.000, Red, Red, White, Visible To and String);
 		Set Global Variable(W, 4);
+		Create In-World Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, R), !=, True)), String(
+			"{0}: {1}", String("Try Again", Null, Null, Null), String("Crouching", Null, Null, Null), Null), Add(Multiply(
+			Direction Towards(Global Variable(C), Value In Array(Global Variable(E), 0)), Global Variable(W)), Global Variable(C)), 2,
+			Clip Against Surfaces, Visible To Position and String);
 	}
 }
 
@@ -686,16 +686,16 @@ rule("SETUP: Time Records")
 	actions
 	{
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", String("Best", Null, Null, Null), String("Times", Null, Null,
-			Null), Null), Null, Left, -5.000, White, Red, White, Visible To and String);
+			Null), Null), Null, Right, -5.000, White, Red, White, Visible To and String);
 		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 1, Null, Null), String("{0} - {1}",
 			Value In Array(Global Variable(P), 0), String("{0} sec", Value In Array(Global Variable(Z), 0), Null, Null), Null), Null),
-			Left, -4.000, White, White, White, Visible To and String);
+			Right, -4.000, White, White, White, Visible To and String);
 		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 2, Null, Null), String("{0} - {1}",
 			Value In Array(Global Variable(P), 1), String("{0} sec", Value In Array(Global Variable(Z), 1), Null, Null), Null), Null),
-			Left, -3.000, White, White, White, Visible To and String);
+			Right, -3.000, White, White, White, Visible To and String);
 		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 3, Null, Null), String("{0} - {1}",
 			Value In Array(Global Variable(P), 2), String("{0} sec", Value In Array(Global Variable(Z), 2), Null, Null), Null), Null),
-			Left, -2.000, White, White, White, Visible To and String);
+			Right, -2.000, White, White, White, Visible To and String);
 	}
 }
 
@@ -790,6 +790,8 @@ rule("ON: Player Spawning (Disable to stop forced spawns)")
 
 	actions
 	{
+		Skip If(Not(Is Button Held(Event Player, Crouch)), 1);
+		Set Player Variable(Event Player, R, True);
 		Resurrect(Event Player);
 		Teleport(Event Player, Global Variable(C));
 		Set Facing(Event Player, Direction Towards(Global Variable(C), Vector(X Component Of(First Of(Global Variable(E))), Y Component Of(
@@ -956,6 +958,52 @@ rule("ON: Player In Spawn")
 	{
 		Stop Chasing Player Variable(Event Player, H);
 		Set Player Variable(Event Player, H, 0);
+	}
+}
+
+rule("ON: Speedometer (Slow)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Horizontal Speed Of(Event Player) <= 12;
+	}
+
+	actions
+	{
+		Destroy HUD Text(Player Variable(Event Player, M));
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
+			White, Yellow, Visible To and String);
+		Set Player Variable(Event Player, M, Last Text ID);
+	}
+}
+
+rule("ON: Speedometer (Fast)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Horizontal Speed Of(Event Player) > 12;
+	}
+
+	actions
+	{
+		Destroy HUD Text(Player Variable(Event Player, M));
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
+			White, Green, Visible To and String);
+		Set Player Variable(Event Player, M, Last Text ID);
 	}
 }
 
