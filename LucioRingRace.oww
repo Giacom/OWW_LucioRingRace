@@ -34,6 +34,38 @@ rule("DEBUG: Setup Global Debug")
 			"{0}: {1}", String("Use Ability 1", Null, Null, Null), String("Backward", Null, Null, Null), Null), Right, 0, White, White,
 			White, Visible To and String);
 		Set Global Variable(M, Nearest Walkable Position(Vector(0, 0, 0)));
+		Set Match Time(3599);
+	}
+}
+
+rule("DEBUG: Label Rings")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(I) == True;
+	}
+
+	actions
+	{
+		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, F), -2.000), Null, Null), Value In Array(
+			Global Variable(E), Add(Player Variable(Event Player, F), -3.000)), 2, Clip Against Surfaces, Visible To Position and String);
+		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, F), -1.000), Null, Null), Value In Array(
+			Global Variable(E), Add(Player Variable(Event Player, F), -2.000)), 2, Clip Against Surfaces, Visible To Position and String);
+		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, F), 0), Null, Null), Value In Array(
+			Global Variable(E), Add(Player Variable(Event Player, F), -1.000)), 2, Clip Against Surfaces, Visible To Position and String);
+		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, F), 1), Null, Null), Value In Array(
+			Global Variable(E), Add(Player Variable(Event Player, F), 0)), 2, Clip Against Surfaces, Visible To Position and String);
+		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, F), 2), Null, Null), Value In Array(
+			Global Variable(E), Add(Player Variable(Event Player, F), 1)), 2, Clip Against Surfaces, Visible To Position and String);
+		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, F), 3), Null, Null), Value In Array(
+			Global Variable(E), Add(Player Variable(Event Player, F), 2)), 2, Clip Against Surfaces, Visible To Position and String);
 	}
 }
 
@@ -59,6 +91,9 @@ rule("DEBUG: Display Coordinates")
 		Create HUD Text(Event Player, Null, String("{0} {1}", String("Save", Null, Null, Null), String("{0}:", String("Status", Null, Null,
 			Null), Null, Null), Null), Player Variable(Event Player, X), Right, 10, Red, Red, White, Visible To and String);
 		Set Player Variable(Event Player, X, False);
+		Set Player Variable(Event Player, C, Vector(0, 0, 0));
+		Set Player Variable(Event Player, D, Vector(0, 0, 0));
+		Set Player Variable(Event Player, E, Vector(0, 0, 0));
 	}
 }
 
@@ -80,12 +115,20 @@ rule("DEBUG - CREATE MODE: Coordinate Finding (Primary Fire)")
 
 	actions
 	{
-		Set Player Variable(Event Player, C, Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(Facing Direction Of(
-			Event Player), 1000), Position Of(Event Player)), Empty Array, Event Player, False));
-		Set Player Variable(Event Player, C, Vector(Round To Integer(X Component Of(Player Variable(Event Player, C)), To Nearest),
-			Round To Integer(Y Component Of(Player Variable(Event Player, C)), To Nearest), Round To Integer(Z Component Of(
-			Player Variable(Event Player, C)), To Nearest)));
+		Set Player Variable(Event Player, D, Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(Facing Direction Of(
+			Event Player), 1000), Position Of(Event Player)), Empty Array, Event Player, True));
+		Set Player Variable(Event Player, D, Vector(Round To Integer(X Component Of(Player Variable(Event Player, D)), To Nearest),
+			Round To Integer(Y Component Of(Player Variable(Event Player, D)), To Nearest), Round To Integer(Z Component Of(
+			Player Variable(Event Player, D)), To Nearest)));
+		Set Player Variable(Event Player, G, Ray Cast Hit Normal(Eye Position(Event Player), Add(Multiply(Facing Direction Of(
+			Event Player), 1000), Position Of(Event Player)), Empty Array, Event Player, True));
+		Skip If(Compare(Player Variable(Event Player, D), ==, Player Variable(Event Player, E)), 3);
+		Set Player Variable(Event Player, C, Player Variable(Event Player, D));
+		Set Player Variable(Event Player, E, Player Variable(Event Player, D));
+		Skip(1);
+		Modify Player Variable(Event Player, C, Add, Multiply(Player Variable(Event Player, G), 0.500));
 		Play Effect(All Players(All Teams), Good Explosion, White, Player Variable(Event Player, C), 0.200);
+		Set Player Variable(Event Player, G, Vector(Round To Integer(0, Up), 0, 0));
 	}
 }
 
@@ -528,7 +571,105 @@ rule("MAP: Kings Row Rings by Giacomand")
 	}
 }
 
-rule("MAP: Nepal by Fahzix")
+rule("MAP: Numbani Rings by Giacomand")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(-2.130, 0.350, 3.130)) < 0.010;
+	}
+
+	actions
+	{
+		Set Global Variable(C, Vector(6.079, 1.002, -0.311));
+		Set Global Variable(T, Empty Array);
+		Set Global Variable(U, Empty Array);
+		Set Global Variable(E, Empty Array);
+		Modify Global Variable(E, Append To Array, Vector(19, 1.500, 12));
+		Modify Global Variable(E, Append To Array, Vector(55.003, 3.500, 15.991));
+		Modify Global Variable(E, Append To Array, Vector(70, 4, 4));
+		Modify Global Variable(E, Append To Array, Vector(85.646, 6.001, -20.354));
+		Modify Global Variable(E, Append To Array, Vector(97.832, 8, -32.471));
+		Modify Global Variable(E, Append To Array, Vector(113.830, 9.010, -22.558));
+		Modify Global Variable(E, Append To Array, Vector(128, 10, 1));
+		Modify Global Variable(E, Append To Array, Vector(141.764, 11.047, 13.438));
+		Modify Global Variable(E, Append To Array, Vector(143.500, 8.999, 30.981));
+		Modify Global Variable(E, Append To Array, Vector(134.796, 10.016, 38.979));
+		Skip If(Compare(False, ==, True), 0);
+		Modify Global Variable(E, Append To Array, Vector(112.446, 11.171, 24.814));
+		Modify Global Variable(E, Append To Array, Vector(89.354, 1, 24.646));
+		Modify Global Variable(E, Append To Array, Vector(83.354, 10.008, 19.646));
+		Modify Global Variable(E, Append To Array, Vector(80, 2, -7.000));
+		Modify Global Variable(E, Append To Array, Vector(99, 1.500, -9.000));
+		Modify Global Variable(E, Append To Array, Vector(117, -1.500, 2));
+		Modify Global Variable(E, Append To Array, Vector(139, -2.500, 4));
+		Modify Global Variable(E, Append To Array, Vector(178, 0.500, -4.000));
+		Modify Global Variable(E, Append To Array, Vector(204, 2, 3));
+		Modify Global Variable(E, Append To Array, Vector(191.999, 2.140, 28.520));
+		Skip If(Compare(False, ==, True), 0);
+		Modify Global Variable(E, Append To Array, Vector(177, 7, 16));
+		Modify Global Variable(E, Append To Array, Vector(177, -1.000, 4.999));
+		Modify Global Variable(E, Append To Array, Vector(161.876, 0, 6.516));
+		Modify Global Variable(E, Append To Array, Vector(157.021, 2, 12.968));
+		Modify Global Variable(E, Append To Array, Vector(150.221, 4.992, 24.373));
+		Modify Global Variable(E, Append To Array, Vector(137.354, 9.007, 22.646));
+		Modify Global Variable(E, Append To Array, Vector(143.242, 9.049, 13.435));
+		Modify Global Variable(E, Append To Array, Vector(163, 6, -3.000));
+		Modify Global Variable(E, Append To Array, Vector(178, 5.500, 13));
+		Modify Global Variable(E, Append To Array, Vector(184, 1.500, 37));
+		Skip If(Compare(False, ==, True), 0);
+		Modify Global Variable(E, Append To Array, Vector(219, 1, 38));
+		Modify Global Variable(E, Append To Array, Vector(219, 1, 8));
+		Modify Global Variable(E, Append To Array, Vector(187.699, 2.022, 2.047));
+		Modify Global Variable(E, Append To Array, Vector(142.072, 0.000, 11.495));
+		Modify Global Variable(E, Append To Array, Vector(101, -0.500, 21));
+		Skip If(Compare(True, ==, False), 0);
+	}
+}
+
+rule("MAP: Havana Rings by Giacomand")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(-10.130, 8.050, -30.130)) < 0.010;
+	}
+
+	actions
+	{
+		Set Global Variable(C, Vector(-4.271, 7.174, -93.840));
+		Set Global Variable(T, Empty Array);
+		Set Global Variable(U, Empty Array);
+		Set Global Variable(E, Empty Array);
+		Modify Global Variable(E, Append To Array, Vector(-7.000, 11, -73.000));
+		Modify Global Variable(E, Append To Array, Vector(-20.000, 15, -65.000));
+		Modify Global Variable(E, Append To Array, Vector(-42.000, 16, -55.500));
+		Modify Global Variable(E, Append To Array, Vector(-62.000, 14, -44.000));
+		Modify Global Variable(E, Append To Array, Vector(-78.449, 10.627, -55.551));
+		Modify Global Variable(E, Append To Array, Vector(-68.000, 14, -72.500));
+		Modify Global Variable(E, Append To Array, Vector(-64.000, 21, -57.000));
+		Modify Global Variable(E, Append To Array, Vector(-44.000, 22, -55.500));
+		Modify Global Variable(E, Append To Array, Vector(-29.981, 20, -47.195));
+		Modify Global Variable(E, Append To Array, Vector(-34.000, 6.500, -27.000));
+		Skip If(Compare(False, ==, True), 0);
+		Modify Global Variable(E, Append To Array, Vector(-37.000, 14, -41.000));
+		Modify Global Variable(E, Append To Array, Vector(-29.040, 14.999, -54.979));
+		Modify Global Variable(E, Append To Array, Vector(-25.000, 7.500, -87.000));
+		Modify Global Variable(E, Append To Array, Vector(-19.109, 8.200, -90.249));
+		Modify Global Variable(E, Append To Array, Vector(-23.874, 15.505, -62.000));
+		Skip If(Compare(False, ==, True), 0);
+	}
+}
+
+rule("MAP: Nepal Rings by Fahzix")
 {
 	event
 	{
@@ -659,6 +800,10 @@ rule("SETUP: Player Vars")
 			Null, Null, Null), Null), String("{0} sec", Player Variable(Event Player, Z), Null, Null), Null), Left, -9.000, White, Red,
 			White, Visible To and String);
 		Set Player Variable(Event Player, S, True);
+		Create Icon(Filtered Array(Event Player, Or(Not(Is In View Angle(Current Array Element, Value In Array(Global Variable(E),
+			Player Variable(Current Array Element, F)), 103)), Not(Is In Line of Sight(Eye Position(Current Array Element), Value In Array(
+			Global Variable(E), Player Variable(Current Array Element, F)), Barriers Do Not Block LOS)))), Value In Array(Global Variable(
+			E), Player Variable(Event Player, F)), Ring Thick, Visible To and Position, Green, True);
 	}
 }
 
@@ -793,6 +938,7 @@ rule("ON: Player Spawning (Disable to stop forced spawns)")
 		Skip If(Not(Is Button Held(Event Player, Crouch)), 1);
 		Set Player Variable(Event Player, R, True);
 		Resurrect(Event Player);
+		Skip If(Compare(Global Variable(C), ==, 0), 1);
 		Teleport(Event Player, Global Variable(C));
 		Set Facing(Event Player, Direction Towards(Global Variable(C), Vector(X Component Of(First Of(Global Variable(E))), Y Component Of(
 			Position Of(Event Player)), Z Component Of(First Of(Global Variable(E))))), To World);
