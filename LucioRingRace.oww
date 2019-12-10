@@ -1300,7 +1300,7 @@ rule("ON: Voted For New Map")
 	actions
 	{
 		Set Player Variable(Event Player, VotedForNewMap, Not(Player Variable(Event Player, VotedForNewMap)));
-		Big Message(All Players(All Teams), Custom String("Vote Toggled", Null, Null, Null));
+		Big Message(Event Player, Custom String("Vote Toggled", Null, Null, Null));
 	}
 }
 
