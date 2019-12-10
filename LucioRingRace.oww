@@ -5,10 +5,13 @@ variables
 		4: CheckpointList
 		6: CheckpointRadius
 		8: DebugEnabled
+		9: MapVoteTimeStart
+		10: MapVoteDuration
 		11: LoopIndex
 		15: BestRecordsNameList
 		19: TeleportEntranceList
 		20: TeleportExitList
+		21: VotingForNewMap
 		22: StartingPositionRadius
 		25: BestRecordsTimeList
 
@@ -18,6 +21,7 @@ variables
 		11: PlayerLoopIndex
 		12: LastCreatedSpeedometerID
 		18: Spawning
+		21: VotedForNewMap
 		25: BestTime
 }
 
@@ -808,6 +812,8 @@ rule("SETUP: Global Vars")
 			Direction Towards(Global Variable(StartingPosition), Value In Array(Global Variable(CheckpointList), 0)), Global Variable(
 			StartingPositionRadius)), Global Variable(StartingPosition)), 2, Clip Against Surfaces, Visible To Position and String, White,
 			Default Visibility);
+		Set Global Variable(MapVoteTimeStart, 900);
+		Set Global Variable(MapVoteDuration, 60);
 	}
 }
 
@@ -1225,5 +1231,99 @@ rule("LOOP: Update Records")
 			2), BestTime));
 		Wait(10, Ignore Condition);
 		Loop;
+	}
+}
+
+rule("SETUP: Voting UI")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Global Variable(VotingForNewMap), ==, True)), Null, Custom String(
+			"Map Vote", Null, Null, Null), Custom String("Use 'Interact' (F) to toggle your vote", Null, Null, Null), Left, 20, White, Red,
+			White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Global Variable(VotingForNewMap), ==, True)), Null, Null,
+			Custom String("Total Votes: {0} / {1}", Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(
+			Current Array Element, VotedForNewMap), ==, True))), Round To Integer(Multiply(Count Of(All Players(All Teams)), 0.500), Up),
+			Null), Left, 21, White, Red, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Global Variable(VotingForNewMap), ==, True)), Null, Null,
+			Custom String("Time Remaining: {0} sec", Subtract(Match Time, Subtract(Global Variable(MapVoteTimeStart), Global Variable(
+			MapVoteDuration))), Null, Null), Left, 22, White, Red, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), And(Compare(Global Variable(VotingForNewMap), ==, True), Compare(
+			Player Variable(Current Array Element, VotedForNewMap), ==, True))), Null, Null, Custom String("You have voted 'Yes'", Null,
+			Null, Null), Left, 23, White, Red, White, Visible To and String, Default Visibility);
+	}
+}
+
+rule("ON: Voting Started")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Match Time <= Global Variable(MapVoteTimeStart);
+		Global Variable(DebugEnabled) != True;
+		All Players(All Teams) != Host Player;
+	}
+
+	actions
+	{
+		Big Message(All Players(All Teams), Custom String("NEW MAP VOTE STARTED", Null, Null, Null));
+		Set Global Variable(VotingForNewMap, True);
+		Wait(6, Ignore Condition);
+		Big Message(All Players(All Teams), Custom String("Use 'Interact' (F) to vote!", Null, Null, Null));
+	}
+}
+
+rule("ON: Voted For New Map")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(VotingForNewMap) == True;
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, VotedForNewMap, Not(Player Variable(Event Player, VotedForNewMap)));
+		Big Message(All Players(All Teams), Custom String("Vote Toggled", Null, Null, Null));
+	}
+}
+
+rule("ON: Voting Finished")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Match Time <= Subtract(Global Variable(MapVoteTimeStart), Global Variable(MapVoteDuration));
+	}
+
+	actions
+	{
+		Set Global Variable(VotingForNewMap, False);
+		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, VotedForNewMap), ==,
+			True))), >, Multiply(Count Of(All Players(All Teams)), 0.500)), 2);
+		Big Message(All Players(All Teams), Custom String("Vote Failed", Null, Null, Null));
+		Abort;
+		Big Message(All Players(All Teams), Custom String("Vote Successful - 60 seconds remain", Null, Null, Null));
+		Set Match Time(60);
 	}
 }
