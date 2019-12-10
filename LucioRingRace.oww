@@ -365,7 +365,8 @@ rule("MAP: Echeinwalde Rings by waycoolway")
 
 	conditions
 	{
-		Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(1.880, 0.350, -2.380)) < 0.010;
+		disabled Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(1.880, 0.350, -2.380)) < 0.010;
+		Current Map == Map(Eichenwalde);
 	}
 
 	actions
@@ -426,7 +427,8 @@ rule("MAP: Lijiang Tower Rings by Giacomand")
 
 	conditions
 	{
-		Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(5.880, 0, -10.130)) < 0.010;
+		disabled Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(5.880, 0, -10.130)) < 0.010;
+		Current Map == Map(Lijiang Tower);
 	}
 
 	actions
@@ -498,7 +500,8 @@ rule("MAP: Temple of Anubis Rings by Giacomand")
 
 	conditions
 	{
-		Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(1.880, -2.440, 2.130)) < 0.010;
+		disabled Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(1.880, -2.440, 2.130)) < 0.010;
+		Current Map == Map(Temple of Anubis);
 	}
 
 	actions
@@ -557,7 +560,8 @@ rule("MAP: Kings Row Rings by Giacomand")
 
 	conditions
 	{
-		Distance Between(Nearest Walkable Position(Vector(0, 100, 0)), Vector(2.630, 6.300, 0.380)) < 0.010;
+		disabled Distance Between(Nearest Walkable Position(Vector(0, 100, 0)), Vector(2.630, 6.300, 0.380)) < 0.010;
+		Current Map == Map(King's Row);
 	}
 
 	actions
@@ -610,7 +614,8 @@ rule("MAP: Numbani Rings by Giacomand")
 
 	conditions
 	{
-		Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(-2.130, 0.350, 3.130)) < 0.010;
+		disabled Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(-2.130, 0.350, 3.130)) < 0.010;
+		Current Map == Map(Numbani);
 	}
 
 	actions
@@ -670,7 +675,8 @@ rule("MAP: Havana Rings by Giacomand")
 
 	conditions
 	{
-		Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(-10.130, 8.050, -30.130)) < 0.010;
+		disabled Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(-10.130, 8.050, -30.130)) < 0.010;
+		Current Map == Map(Havana);
 	}
 
 	actions
@@ -708,7 +714,8 @@ rule("MAP: Nepal Rings by Fahzix")
 
 	conditions
 	{
-		Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(-18.130, 13.300, -1.880)) < 0.010;
+		disabled Distance Between(Nearest Walkable Position(Vector(0, 0, 0)), Vector(-18.130, 13.300, -1.880)) < 0.010;
+		Current Map == Map(Nepal);
 	}
 
 	actions
