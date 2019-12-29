@@ -52,33 +52,12 @@ rule("INIT: Spawn Dummies")
 	actions
 	{
 		Wait(1, Ignore Condition);
-		Create Dummy Bot(Random Value In Array(All Tank Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Tank Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Damage Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Damage Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Support Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Support Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
-	}
-}
-
-rule("INIT: Bots")
-{
-	event
-	{
-		Ongoing - Each Player;
-		Team 2;
-		All;
-	}
-
-	conditions
-	{
-		Has Spawned(Event Player) == True;
-	}
-
-	actions
-	{
-		Wait(5, Ignore Condition);
-		Teleport(Event Player, Vector(0, -12.000, 0));
+		Create Dummy Bot(Random Value In Array(All Tank Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Tank Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Damage Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Damage Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Support Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Support Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
 	}
 }
 
@@ -123,7 +102,7 @@ rule("INIT: Global")
 	}
 }
 
-rule("Respawn Bots")
+rule("Despawn Bot")
 {
 	event
 	{
@@ -134,8 +113,32 @@ rule("Respawn Bots")
 
 	actions
 	{
-		Resurrect(Event Player);
-		Teleport(Event Player, Vector(0, -12.000, 0));
+		Wait(2, Ignore Condition);
+		disabled Resurrect(Event Player);
+		Destroy Dummy Bot(Team 2, Slot Of(Event Player));
+	}
+}
+
+rule("Spawn new Dummy")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Count Of(All Players(Team 2)) != 6;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
 	}
 }
 
@@ -402,6 +405,7 @@ rule("Mercy Pocket Part 1")
 			Multiply(Facing Direction Of(Event Player), Distance Between(Eye Position(Event Player), Global Variable(MercyButton)))), Null,
 			Event Player, False)) <= 0.400;
 		Is Button Held(Event Player, Primary Fire) == True;
+		Hero Of(Event Player) != Hero(Mercy);
 	}
 
 	actions
@@ -498,6 +502,7 @@ rule("Ana Nano Boost")
 			Multiply(Facing Direction Of(Event Player), Distance Between(Eye Position(Event Player), Global Variable(AnaButton)))), Null,
 			Event Player, False)) <= 0.400;
 		Is Button Held(Event Player, Primary Fire) == True;
+		Hero Of(Event Player) != Hero(Ana);
 	}
 
 	actions
@@ -537,6 +542,7 @@ rule("Baptiste Amplification Matrix Part 1")
 			Null, Event Player, False)) <= 0.400;
 		Is Button Held(Event Player, Primary Fire) == True;
 		Global Variable(BapWaitingForOrders) == False;
+		Hero Of(Event Player) != Hero(Baptiste);
 	}
 
 	actions
