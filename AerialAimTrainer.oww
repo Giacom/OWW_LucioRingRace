@@ -1,0 +1,576 @@
+variables
+{
+	global:
+		0: BotDistance
+		1: ForwardButton
+		2: BackwardButton
+		3: SetRandomFacingButton
+		4: SetRandomFacing
+		5: JumpPadPosition
+		22: BapWaitingForOrders
+		23: MercyButton
+		24: AnaButton
+		25: BaptisteButton
+
+	player:
+		2: DamageFloatPos
+		3: DamageTaken
+		4: DamageFloatTimer
+		5: DamgeFloatWasCritical
+}
+
+rule("INIT: Debug")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("-> {0}", Facing Direction Of(Event Player), Null, Null), Null, Null, Left, 0, White, White,
+			White, String, Default Visibility);
+		Create HUD Text(Event Player, String("-> {0}", Position Of(Event Player), Null, Null), Null, Null, Left, 0, White, White, White,
+			String, Default Visibility);
+	}
+}
+
+rule("INIT: Spawn Dummies")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Create Dummy Bot(Random Value In Array(All Tank Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Tank Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Damage Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Damage Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Support Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Random Value In Array(All Support Heroes), Team 2, -1.000, Vector(0, -100.000, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("INIT: Bots")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(5, Ignore Condition);
+		Teleport(Event Player, Vector(0, -12.000, 0));
+	}
+}
+
+rule("INIT: Global")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Match Time(9999);
+		Set Global Variable(BotDistance, -10.000);
+		Create In-World Text(All Players(All Teams), String("Start", Null, Null, Null), Vector(70.595, 6.061, -32.100), 1.500,
+			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Crouch + Interact = Ult", Null, Null, Null), Vector(72.013, 6.750,
+			-26.599), 1.500, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), String("{0} {1}", String("Attack", Null, Null, Null), String("Spheres", Null, Null,
+			Null), Null), Vector(-5.800, 5, -77.550), 1.500, Clip Against Surfaces, Visible To Position and String, White,
+			Default Visibility);
+		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Distance", Null, Null, Null), Global Variable(BotDistance),
+			Null), Vector(-5.800, 4.500, -77.550), 1.500, Clip Against Surfaces, Visible To Position and String, White,
+			Default Visibility);
+		Set Global Variable(ForwardButton, Vector(-5.800, 2.500, -79.200));
+		Create Effect(All Players(All Teams), Sphere, Green, Global Variable(ForwardButton), 1, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("Forward", Null, Null, Null), Global Variable(ForwardButton), 1,
+			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Set Global Variable(BackwardButton, Vector(-5.800, 2.500, -75.900));
+		Create Effect(All Players(All Teams), Sphere, Blue, Global Variable(BackwardButton), 1, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("Backward", Null, Null, Null), Global Variable(BackwardButton), 1,
+			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Set Global Variable(SetRandomFacingButton, Vector(0, 2.500, -73.000));
+		Set Global Variable(SetRandomFacing, False);
+		Create In-World Text(All Players(All Teams), Custom String("Random Direction Bots: {0}", Global Variable(SetRandomFacing), Null,
+			Null), Global Variable(SetRandomFacingButton), 1, Clip Against Surfaces, Visible To Position and String, White,
+			Default Visibility);
+		Create Effect(All Players(All Teams), Sphere, Lime Green, Global Variable(SetRandomFacingButton), 1,
+			Visible To Position and Radius);
+		Set Global Variable(JumpPadPosition, Vector(1.315, 0.400, -73.589));
+		Create Effect(All Players(All Teams), Ring, Green, Global Variable(JumpPadPosition), 1, Visible To Position and Radius);
+	}
+}
+
+rule("Respawn Bots")
+{
+	event
+	{
+		Player Died;
+		Team 2;
+		All;
+	}
+
+	actions
+	{
+		Resurrect(Event Player);
+		Teleport(Event Player, Vector(0, -12.000, 0));
+	}
+}
+
+rule("Bounce Zone")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	conditions
+	{
+		Y Component Of(Position Of(Event Player)) < -10.800;
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Rooted, 9999);
+		Teleport(Event Player, Vector(Random Real(-20.000, 20), Random Real(-9.000, -8.000), Add(Global Variable(BotDistance), -90.000)));
+		Apply Impulse(Event Player, Vector(Multiply(X Component Of(Position Of(Event Player)), -1.000), Random Real(35, 45), 0),
+			Random Real(24, 30), To World, Cancel Contrary Motion);
+		Stop Facing(Event Player);
+		Skip If(Compare(Global Variable(SetRandomFacing), ==, False), 2);
+		Set Facing(Event Player, Vector(Random Real(-1.000, 1), 0, Random Real(-1.000, 1)), To World);
+		Skip(1);
+		Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Host Player)), 100, To World,
+			Direction and Turn Rate);
+		Skip If(Compare(Player Variable(Event Player, DamageFloatTimer), >, 0), 1);
+		Heal(Event Player, Null, Multiply(Max Health(Event Player), 0.250));
+	}
+}
+
+rule("TP Players")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is In Spawn Room(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(0.016, Ignore Condition);
+		Loop If(Is In Spawn Room(Event Player));
+		Teleport(Event Player, Vector(1, 3.300, -77.000));
+		Set Facing(Event Player, Vector(0, 0, -1.000), To World);
+	}
+}
+
+rule("Move Bots Forward")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Primary Fire) == True;
+		Distance Between(Global Variable(ForwardButton), Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(
+			Facing Direction Of(Event Player), Distance Between(Event Player, Global Variable(ForwardButton))), Eye Position(
+			Event Player)), Null, All Players(All Teams), False)) <= 1;
+	}
+
+	actions
+	{
+		Set Global Variable(BotDistance, Min(0, Add(Global Variable(BotDistance), 5)));
+		Play Effect(Event Player, Ring Explosion Sound, White, Event Player, 50);
+	}
+}
+
+rule("Move Bots Backwards")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Primary Fire) == True;
+		Distance Between(Global Variable(BackwardButton), Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(
+			Facing Direction Of(Event Player), Distance Between(Event Player, Global Variable(BackwardButton))), Eye Position(
+			Event Player)), Null, All Players(All Teams), False)) <= 1;
+	}
+
+	actions
+	{
+		Set Global Variable(BotDistance, Max(-100.000, Subtract(Global Variable(BotDistance), 5)));
+		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
+	}
+}
+
+rule("Toggle Random Facing")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Primary Fire) == True;
+		Distance Between(Global Variable(SetRandomFacingButton), Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(
+			Facing Direction Of(Event Player), Distance Between(Event Player, Global Variable(SetRandomFacingButton))), Eye Position(
+			Event Player)), Null, All Players(All Teams), False)) <= 1;
+	}
+
+	actions
+	{
+		Set Global Variable(SetRandomFacing, Not(Global Variable(SetRandomFacing)));
+		Play Effect(Event Player, Explosion Sound, White, Event Player, 50);
+	}
+}
+
+rule("Hitpoint Float - Init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	actions
+	{
+		Create In-World Text(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, DamageFloatTimer), >, 0),
+			Compare(Player Variable(Event Player, DamgeFloatWasCritical), ==, False))), Round To Integer(Player Variable(Event Player,
+			DamageTaken), Down), Player Variable(Event Player, DamageFloatPos), 2, Clip Against Surfaces, Visible To Position and String,
+			White, Default Visibility);
+		Create In-World Text(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, DamageFloatTimer), >, 0),
+			Compare(Player Variable(Event Player, DamgeFloatWasCritical), ==, True))), Round To Integer(Player Variable(Event Player,
+			DamageTaken), Down), Player Variable(Event Player, DamageFloatPos), 2, Clip Against Surfaces, Visible To Position and String,
+			Yellow, Default Visibility);
+	}
+}
+
+rule("Hitpoint Float - Damage Taken")
+{
+	event
+	{
+		Player Took Damage;
+		Team 2;
+		All;
+	}
+
+	actions
+	{
+		Modify Player Variable(Event Player, DamageTaken, Add, Event Damage);
+		Chase Player Variable Over Time(Event Player, DamageFloatTimer, 0, 2, None);
+		Set Player Variable(Event Player, DamageFloatTimer, 2);
+		Set Player Variable(Event Player, DamageFloatPos, Add(Position Of(Event Player), Vector(0, 1, 0)));
+		Chase Player Variable Over Time(Event Player, DamageFloatPos, Add(Player Variable(Event Player, DamageFloatPos), Vector(0, 2, 0)),
+			4, None);
+		Set Player Variable(Event Player, DamgeFloatWasCritical, Event Was Critical Hit);
+	}
+}
+
+rule("Hitpoint Float - Float Finished")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	conditions
+	{
+		Player Variable(Event Player, DamageFloatTimer) <= 0;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, DamageTaken, 0);
+	}
+}
+
+rule("Jump Pad")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Global Variable(JumpPadPosition), Event Player) <= 1.500;
+		Is On Ground(Event Player) == True;
+	}
+
+	actions
+	{
+		Apply Impulse(Event Player, Vector(0, 1, 0), 15, To World, Incorporate Contrary Motion);
+		Play Effect(All Players(All Teams), Ring Explosion Sound, White, Event Player, 50);
+	}
+}
+
+rule("== PMA Jellies Code ==")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Global Variable(MercyButton, Vector(6, 2.500, -75.992));
+		Set Global Variable(AnaButton, Add(Vector(0, 0, -1.500), Global Variable(MercyButton)));
+		Set Global Variable(BaptisteButton, Add(Vector(0, 0, -3.000), Global Variable(MercyButton)));
+	}
+}
+
+rule("Effects")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Sphere, Blue, Global Variable(AnaButton), 0.400, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), Hero Icon String(Hero(Ana)), Global Variable(AnaButton), 2, Clip Against Surfaces,
+			Visible To Position and String, White, Default Visibility);
+		Create Effect(All Players(All Teams), Sphere, Turquoise, Global Variable(BaptisteButton), 0.400, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), Hero Icon String(Hero(Baptiste)), Global Variable(BaptisteButton), 2,
+			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create Effect(All Players(All Teams), Sphere, Yellow, Global Variable(MercyButton), 0.400, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), Hero Icon String(Hero(Mercy)), Global Variable(MercyButton), 2, Clip Against Surfaces,
+			Visible To Position and String, White, Default Visibility);
+		disabled Create Effect(All Players(All Teams), Ring, Green, Vector(56.613, -0.574, -7.100), 1, Visible To Position and Radius);
+	}
+}
+
+rule("Mercy Pocket Part 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Global Variable(MercyButton), Ray Cast Hit Position(Eye Position(Event Player), Add(Eye Position(Event Player),
+			Multiply(Facing Direction Of(Event Player), Distance Between(Eye Position(Event Player), Global Variable(MercyButton)))), Null,
+			Event Player, False)) <= 0.400;
+		Is Button Held(Event Player, Primary Fire) == True;
+	}
+
+	actions
+	{
+		Skip If(Compare(Global Variable(P), ==, Event Player), 5);
+		Create Dummy Bot(Hero(Mercy), Team 1, -1.000, Position Of(Event Player), Direction Towards(Position Of(Event Player), Eye Position(
+			Event Player)));
+		Set Global Variable(P, Event Player);
+		Start Facing(Players On Hero(Hero(Mercy), Team 1), Direction Towards(Eye Position(Players On Hero(Hero(Mercy), Team 1)),
+			Eye Position(Event Player)), 1000, To World, Direction and Turn Rate);
+		Start Holding Button(Players On Hero(Hero(Mercy), Team 1), Secondary Fire);
+		Abort;
+		Destroy Dummy Bot(Team 1, Slot Of(Players On Hero(Hero(Mercy), Team 1)));
+		Set Global Variable(P, Null);
+	}
+}
+
+rule("Mercy Pocket Part 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		Mercy;
+	}
+
+	conditions
+	{
+		Distance Between(Position Of(Event Player), Position Of(Global Variable(P))) >= 3;
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Holding Button(Event Player, Ability 1);
+	}
+}
+
+rule("Mercy Pocket Part 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		Mercy;
+	}
+
+	conditions
+	{
+		Or(Compare(Is In Line of Sight(Eye Position(Event Player), Eye Position(Global Variable(P)), Barriers Do Not Block LOS), ==,
+			False), Compare(Distance Between(Event Player, Position Of(Event Player)), >=, 14)) == True;
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Position Of(Global Variable(P)));
+	}
+}
+
+rule("Free Ult [Crouch + Interact]")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Crouch) == True;
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("Ana Nano Boost")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Global Variable(AnaButton), Ray Cast Hit Position(Eye Position(Event Player), Add(Eye Position(Event Player),
+			Multiply(Facing Direction Of(Event Player), Distance Between(Eye Position(Event Player), Global Variable(AnaButton)))), Null,
+			Event Player, False)) <= 0.400;
+		Is Button Held(Event Player, Primary Fire) == True;
+	}
+
+	actions
+	{
+		Small Message(Event Player, 3);
+		Wait(1, Ignore Condition);
+		Small Message(Event Player, 2);
+		Wait(1, Ignore Condition);
+		Small Message(Event Player, 1);
+		Wait(1, Ignore Condition);
+		Create Dummy Bot(Hero(Ana), Team 1, -1.000, Subtract(Position Of(Event Player), Facing Direction Of(Event Player)),
+			Direction Towards(Subtract(Position Of(Event Player), Facing Direction Of(Event Player)), Eye Position(Event Player)));
+		Start Facing(Players On Hero(Hero(Ana), Team 1), Direction Towards(Eye Position(Players On Hero(Hero(Ana), Team 1)), Eye Position(
+			Event Player)), 5100, To World, Direction and Turn Rate);
+		Wait(0.050, Ignore Condition);
+		Set Ultimate Charge(Players On Hero(Hero(Ana), Team 1), 100);
+		Wait(0.250, Ignore Condition);
+		Press Button(Players On Hero(Hero(Ana), Team 1), Ultimate);
+		Wait(8, Ignore Condition);
+		Destroy Dummy Bot(Team 1, Slot Of(Players On Hero(Hero(Ana), Team 1)));
+	}
+}
+
+rule("Baptiste Amplification Matrix Part 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Global Variable(BaptisteButton), Ray Cast Hit Position(Eye Position(Event Player), Add(Eye Position(Event Player),
+			Multiply(Facing Direction Of(Event Player), Distance Between(Eye Position(Event Player), Global Variable(BaptisteButton)))),
+			Null, Event Player, False)) <= 0.400;
+		Is Button Held(Event Player, Primary Fire) == True;
+		Global Variable(BapWaitingForOrders) == False;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Baptiste), Team 1, -1.000, Position Of(Event Player), Facing Direction Of(Event Player));
+		Start Facing(Players On Hero(Hero(Baptiste), Team 1), Facing Direction Of(Event Player), 500, To World, Direction and Turn Rate);
+		Wait(0.050, Ignore Condition);
+		Set Ultimate Charge(Players On Hero(Hero(Baptiste), Team 1), 100);
+		Wait(0.050, Ignore Condition);
+		Press Button(Players On Hero(Hero(Baptiste), Team 1), Ultimate);
+		Set Global Variable(BapWaitingForOrders, True);
+	}
+}
+
+rule("Baptiste Amplification Matrix Part 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(BapWaitingForOrders) == True;
+		Is Button Held(Event Player, Primary Fire) == True;
+	}
+
+	actions
+	{
+		Press Button(Players On Hero(Hero(Baptiste), Team 1), Primary Fire);
+		Wait(10.500, Ignore Condition);
+		Destroy Dummy Bot(Team 1, Slot Of(Players On Hero(Hero(Baptiste), All Teams)));
+		Set Global Variable(BapWaitingForOrders, False);
+	}
+}
