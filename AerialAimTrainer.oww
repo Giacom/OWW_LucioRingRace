@@ -7,6 +7,8 @@ variables
 		3: SetRandomFacingButton
 		4: SetRandomFacing
 		5: JumpPadPosition
+		6: RandomDummyPool
+		7: RandomDummyPoolIndex
 		22: BapWaitingForOrders
 		23: MercyButton
 		24: AnaButton
@@ -39,25 +41,6 @@ rule("INIT: Debug")
 			White, String, Default Visibility);
 		Create HUD Text(Event Player, String("-> {0}", Position Of(Event Player), Null, Null), Null, Null, Left, 0, White, White, White,
 			String, Default Visibility);
-	}
-}
-
-rule("INIT: Spawn Dummies")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	actions
-	{
-		Wait(1, Ignore Condition);
-		Create Dummy Bot(Random Value In Array(All Tank Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Tank Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Damage Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Damage Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Support Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Support Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
 	}
 }
 
@@ -102,20 +85,25 @@ rule("INIT: Global")
 	}
 }
 
-rule("Despawn Bot")
+rule("INIT: Random Dummy Pool")
 {
 	event
 	{
-		Player Died;
-		Team 2;
-		All;
+		Ongoing - Global;
 	}
 
 	actions
 	{
-		Wait(2, Ignore Condition);
-		disabled Resurrect(Event Player);
-		Destroy Dummy Bot(Team 2, Slot Of(Event Player));
+		Set Global Variable(RandomDummyPool, Empty Array);
+		Set Global Variable(RandomDummyPoolIndex, 0);
+		Modify Global Variable(RandomDummyPool, Append To Array, All Tank Heroes);
+		Modify Global Variable(RandomDummyPool, Append To Array, All Damage Heroes);
+		Modify Global Variable(RandomDummyPool, Append To Array, All Damage Heroes);
+		Modify Global Variable(RandomDummyPool, Append To Array, All Damage Heroes);
+		Modify Global Variable(RandomDummyPool, Append To Array, All Support Heroes);
+		Modify Global Variable(RandomDummyPool, Append To Array, All Support Heroes);
+		Modify Global Variable(RandomDummyPool, Append To Array, All Support Heroes);
+		Set Global Variable(RandomDummyPool, Randomized Array(Global Variable(RandomDummyPool)));
 	}
 }
 
@@ -133,12 +121,31 @@ rule("Spawn new Dummy")
 
 	actions
 	{
-		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1.000, Vector(0, -12.000, 0), Vector(0, 0, 0));
+		Wait(0.500, Abort When False);
+		Create Dummy Bot(Value In Array(Global Variable(RandomDummyPool), Global Variable(RandomDummyPoolIndex)), Team 2, -1.000, Vector(0,
+			-12.000, 0), Vector(0, 0, 0));
+		Modify Global Variable(RandomDummyPoolIndex, Add, 1);
+		Skip If(Compare(Global Variable(RandomDummyPoolIndex), <, Count Of(Global Variable(RandomDummyPool))), 2);
+		Set Global Variable(RandomDummyPoolIndex, 0);
+		Set Global Variable(RandomDummyPool, Randomized Array(Global Variable(RandomDummyPool)));
+		Loop If Condition Is True;
+	}
+}
+
+rule("Despawn Bot")
+{
+	event
+	{
+		Player Died;
+		Team 2;
+		All;
+	}
+
+	actions
+	{
+		Wait(2, Ignore Condition);
+		disabled Resurrect(Event Player);
+		Destroy Dummy Bot(Team 2, Slot Of(Event Player));
 	}
 }
 
@@ -169,7 +176,7 @@ rule("Bounce Zone")
 		Start Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Host Player)), 100, To World,
 			Direction and Turn Rate);
 		Skip If(Compare(Player Variable(Event Player, DamageFloatTimer), >, 0), 1);
-		Heal(Event Player, Null, Multiply(Max Health(Event Player), 0.250));
+		Heal(Event Player, Null, Multiply(Max Health(Event Player), 0.100));
 	}
 }
 
