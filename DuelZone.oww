@@ -78,7 +78,7 @@ rule("DEBUG: Init Debug")
 		Create Dummy Bot(Hero(Doomfist), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
 		Create Dummy Bot(Hero(Bastion), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
 		Create Dummy Bot(Hero(Lúcio), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		disabled Create Dummy Bot(Hero(Zenyatta), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Zenyatta), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
 	}
 }
 
@@ -344,23 +344,23 @@ rule("INIT: Setup Duel Zone")
 	actions
 	{
 		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			0)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 0), Value In Array(Global Variable(DuelZoneRadiusList),
-			0), Visible To Position and Radius);
+			0)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 0), Value In Array(Global Variable(
+			DuelZoneRadiusList), 0), Visible To Position and Radius);
 		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			1)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 1), Value In Array(Global Variable(DuelZoneRadiusList),
-			1), Visible To Position and Radius);
+			1)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 1), Value In Array(Global Variable(
+			DuelZoneRadiusList), 1), Visible To Position and Radius);
 		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			2)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 2), Value In Array(Global Variable(DuelZoneRadiusList),
-			2), Visible To Position and Radius);
+			2)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 2), Value In Array(Global Variable(
+			DuelZoneRadiusList), 2), Visible To Position and Radius);
 		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			3)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 3), Value In Array(Global Variable(DuelZoneRadiusList),
-			3), Visible To Position and Radius);
+			3)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 3), Value In Array(Global Variable(
+			DuelZoneRadiusList), 3), Visible To Position and Radius);
 		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			4)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 4), Value In Array(Global Variable(DuelZoneRadiusList),
-			4), Visible To Position and Radius);
+			4)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 4), Value In Array(Global Variable(
+			DuelZoneRadiusList), 4), Visible To Position and Radius);
 		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			5)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 5), Value In Array(Global Variable(DuelZoneRadiusList),
-			5), Visible To Position and Radius);
+			5)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 5), Value In Array(Global Variable(
+			DuelZoneRadiusList), 5), Visible To Position and Radius);
 	}
 }
 
@@ -519,13 +519,14 @@ rule("ON STATE 4: Player In Match Dies")
 		Play Effect(Player Variable(Event Player, TempOpponent), Explosion Sound, White, Player Variable(Event Player, TempOpponent), 80);
 		Set Player Variable(Event Player, PlayerState, 5);
 		Disable Built-In Game Mode Respawning(Player Variable(Event Player, TempOpponent));
-		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 6);
+		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 7);
 		Abort;
 		Modify Player Score(Event Player, -1.000);
 		Modify Player Score(Player Variable(Event Player, TempOpponent), 1);
+		Big Message(Player Variable(Event Player, TempOpponent), Custom String("YOU WON!", Null, Null, Null));
+		Wait(1, Ignore Condition);
 		Set Player Variable(Event Player, PlayerState, 1);
 		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 1);
-		Big Message(Player Variable(Event Player, TempOpponent), Custom String("YOU WON!", Null, Null, Null));
 	}
 }
 
@@ -542,6 +543,51 @@ rule("ON STATE 5: Wait For Loser to Spawn")
 	{
 		Is Game In Progress == True;
 		Player Variable(Event Player, PlayerState) == 5;
+		Is Dead(Event Player) == False;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, PlayerState, 6);
+	}
+}
+
+rule("ON STATE 5: Loser Won't Spawn")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Player Variable(Event Player, PlayerState) == 5;
+	}
+
+	actions
+	{
+		Wait(10, Abort When False);
+		Set Player Variable(Event Player, PlayerState, 6);
+	}
+}
+
+rule("ON STATE 6: Loser Spawned")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Player Variable(Event Player, PlayerState) == 6;
 		Is Alive(Event Player) == True;
 	}
 
@@ -766,33 +812,39 @@ rule("ON: Player Disconnected")
 	{
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 0)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
 		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 1)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
 		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 2)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
 		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 3)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
 		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 4)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
 		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 5)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
 		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 	}
 }
