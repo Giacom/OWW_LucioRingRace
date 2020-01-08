@@ -427,7 +427,7 @@ rule("ON STATE 1: Teleport Player To Lobby")
 		Set Status(Event Player, Null, Phased Out, 9999);
 		Skip If(Compare(Hero Of(Event Player), !=, Hero(Tracer)), 1);
 		Disallow Button(Event Player, Ability 2);
-		Set Global Variable(ZDebug, Filtered Array(All Living Players(All Teams), And(Compare(Player Variable(Current Array Element,
+		disabled Set Global Variable(ZDebug, Filtered Array(All Living Players(All Teams), And(Compare(Player Variable(Current Array Element,
 			PlayerState), ==, 2), Compare(Event Player, !=, Current Array Element))));
 		Skip If(Compare(Count Of(Filtered Array(All Living Players(All Teams), And(Compare(Player Variable(Current Array Element,
 			PlayerState), ==, 2), Compare(Event Player, !=, Current Array Element)))), >, 1), 1);
@@ -471,8 +471,8 @@ rule("ON STATE 3: Teleport / Reset Player For Match")
 		Apply Impulse(Event Player, Forward, 0.001, To World, Cancel Contrary Motion);
 		Apply Impulse(Event Player, Right, 0.001, To World, Cancel Contrary Motion);
 		Apply Impulse(Event Player, Left, 0.001, To World, Cancel Contrary Motion);
-		Set Player Variable(Event Player, PlayerState, 4);
 		disabled Set Status(Event Player, Null, Rooted, 2.500);
+		Set Player Variable(Event Player, PlayerState, 4);
 		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
 		Small Message(Event Player, 3);
 		Wait(1, Ignore Condition);
