@@ -1,0 +1,798 @@
+variables
+{
+	global:
+		0: DEBUG
+		1: DEBUG_ZonePosition
+		2: DEBUG_ZoneRadius
+		3: DEBUG_TempFacingDir
+		4: DuelZonePositionList
+		5: DuelZoneRadiusList
+		6: DuelZoneSpawnList
+		7: LobbyPosition
+		8: TempWaitingPlayersList
+		9: TempPlayerOne
+		10: TempPlayerTwo
+		11: TempAvailableDuelZones
+		12: ConfigScoreToWin
+		13: ConfigMatchmakerTimer
+		14: MatchmakerTicker
+		16: BarrierPositionList
+		17: BarrierRadiusList
+		19: TempOrphanPlayers
+		25: ZDebug
+
+	player:
+		0: ActiveDuelZone
+		1: PlayerState
+		4: PlayerNumberOffset
+		5: EnemyPlayerNumberOffset
+		6: MatchScore
+		7: TempOpponent
+		8: TimeSpentWaiting
+		9: TempHeroWasOn
+}
+
+disabled rule("DEBUG: Enable this for Debug Mode")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Global Variable(DEBUG, True);
+	}
+}
+
+rule("DEBUG: Init Debug")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global Variable(DEBUG) == True;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("DEBUG INFO", Null, Null, Null), Left, -1.000, White, White, Red,
+			Visible To and String, Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), Null, Global Variable(DEBUG_ZonePosition), Null, Left, 0, White, White, White,
+			Visible To and String, Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), Null, Global Variable(DEBUG_ZoneRadius), Null, Left, 0, White, White, White,
+			Visible To and String, Default Visibility);
+		Create Effect(All Players(All Teams), Sphere, Red, Global Variable(DEBUG_ZonePosition), Global Variable(DEBUG_ZoneRadius),
+			Visible To Position and Radius);
+		Wait(4, Ignore Condition);
+		Create Dummy Bot(Hero(McCree), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ashe), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Baptiste), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Genji), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Hanzo), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Junkrat), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Doomfist), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Bastion), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Lúcio), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		disabled Create Dummy Bot(Hero(Zenyatta), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+disabled rule("DEBUG: Set Map Duel Zone Position")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(DEBUG) == True;
+		Is Button Held(Event Player, Primary Fire) == True;
+	}
+
+	actions
+	{
+		Set Global Variable(DEBUG_ZonePosition, Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(Facing Direction Of(
+			Event Player), 1000), Eye Position(Event Player)), All Players(All Teams), Event Player, True));
+	}
+}
+
+disabled rule("DEBUG: Set Duel Zone Radius")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(DEBUG) == True;
+		Or(Is Button Held(Event Player, Jump), Is Button Held(Event Player, Crouch)) == True;
+	}
+
+	actions
+	{
+		Skip If(Is Button Held(Event Player, Jump), 2);
+		Modify Global Variable(DEBUG_ZoneRadius, Add, 5);
+		Abort;
+		Modify Global Variable(DEBUG_ZoneRadius, Subtract, 5);
+	}
+}
+
+rule("DEBUG: Kill Player #2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(DEBUG) == True;
+		Is Communicating(Event Player, Hello) == True;
+	}
+
+	actions
+	{
+		Kill(Players In Slot(1, All Teams), Null);
+	}
+}
+
+rule("DEBUG: No Clip")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(DEBUG) == True;
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Set Global Variable(DEBUG_TempFacingDir, Facing Direction Of(Event Player));
+		Teleport(Event Player, Add(Multiply(Facing Direction Of(Event Player), 10), Eye Position(Event Player)));
+		Set Facing(Event Player, Global Variable(DEBUG_TempFacingDir), To World);
+		Apply Impulse(Event Player, Vector(0, 1, 0), 5, To World, Cancel Contrary Motion);
+	}
+}
+
+rule("MAP: Havana")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Current Map == Map(Havana);
+	}
+
+	actions
+	{
+		Create In-World Text(All Players(All Teams), Custom String("Waiting Room", Null, Null, Null), Vector(-92.542, 7.250, -70.485), 2,
+			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Set Global Variable(DuelZonePositionList, Empty Array);
+		Set Global Variable(DuelZoneRadiusList, Empty Array);
+		Set Global Variable(DuelZoneSpawnList, Empty Array);
+		Set Global Variable(LobbyPosition, Vector(-102.513, 5.349, -73.331));
+		Set Global Variable(BarrierPositionList, Empty Array);
+		Set Global Variable(BarrierRadiusList, Empty Array);
+		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(-96.249, 4, -68.923));
+		Modify Global Variable(DuelZoneRadiusList, Append To Array, 35);
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(-108.678, 5.199, -53.831));
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(-83.129, 5.348, -78.313));
+		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(-4.039, 6, -80.952));
+		Modify Global Variable(DuelZoneRadiusList, Append To Array, 20);
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(1.384, 7.348, -89.456));
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(1.284, 7.348, -68.823));
+		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(33.053, 17.395, -77.519));
+		Modify Global Variable(DuelZoneRadiusList, Append To Array, 75);
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(6.941, 13.351, -74.360));
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(65.284, 13.352, -79.830));
+		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(66.423, 6.317, -94.950));
+		Modify Global Variable(DuelZoneRadiusList, Append To Array, 50);
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(76.863, 8.341, -72.242));
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(102.236, 3.310, -72.689));
+		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(149.344, 12.273, -46.853));
+		Modify Global Variable(DuelZoneRadiusList, Append To Array, 30);
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(150.411, 10.427, -63.278));
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(151.415, 10.352, -29.396));
+		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(209.334, 27.500, -40.314));
+		Modify Global Variable(DuelZoneRadiusList, Append To Array, 30);
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(214.653, 28.849, -29.623));
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(214.674, 28.848, -50.187));
+		Modify Global Variable(BarrierPositionList, Append To Array, Vector(176.452, 11, -46.671));
+		Modify Global Variable(BarrierRadiusList, Append To Array, 15);
+		Modify Global Variable(BarrierPositionList, Append To Array, Vector(182.679, 25.659, -45.952));
+		Modify Global Variable(BarrierRadiusList, Append To Array, 20);
+	}
+}
+
+rule("CONFIG: Setup Config")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Global Variable(ConfigScoreToWin, 2);
+		Set Global Variable(ConfigMatchmakerTimer, 15);
+	}
+}
+
+rule("INIT: Pre-Assemble Heroes")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Match Time(2);
+		Disable Built-In Game Mode Announcer;
+		Disable Built-In Game Mode Scoring;
+	}
+}
+
+rule("INIT: Post-Assemble Heroes")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+	}
+
+	actions
+	{
+		Set Match Time(3590);
+	}
+}
+
+rule("INIT: Global HUD")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("You are playing Giacomand's Duel Zones", Null, Null, Null),
+			Right, -10.000, White, White, Red, Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("Score to win is {0}", Global Variable(ConfigScoreToWin), Null,
+			Null), Right, 0, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("Matchmaker Timer is {0} sec(s)", Global Variable(
+			ConfigMatchmakerTimer), Null, Null), Right, 0, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("{0}% - {1}% avg - {2}% peak", Server Load, Server Load Average,
+			Server Load Peak), Right, 1, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, PlayerState), ==, 2)), Null,
+			Null, Custom String("Searching for opponent..", Null, Null, Null), Left, -1.000, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, PlayerState), ==, 2)), Null,
+			Null, Custom String("Matches will be created in {0} sec(s)", Global Variable(MatchmakerTicker), Null, Null), Left, 0, White,
+			White, White, Visible To and String, Default Visibility);
+	}
+}
+
+rule("INIT: Player HUD")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		disabled Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), String(
+			"{0} {1} {2}", Hero Icon String(Hero Of(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player,
+			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
+			Current Array Element))))), Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone),
+			==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), String(
+			"{0} - {1}", Player Variable(Event Player, MatchScore), Player Variable(Event Player, MatchScore), Null)), Null, Null, Left, 0,
+			Orange, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), String(
+			"{0} {1} {2}", Hero Icon String(Hero Of(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player,
+			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
+			Current Array Element))))), Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone),
+			==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), String(
+			"{0} - {1}", Player Variable(Event Player, MatchScore), Player Variable(Filtered Array(All Players(All Teams), And(Compare(
+			Player Variable(Event Player, ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(
+			Event Player, !=, Current Array Element))), MatchScore), Null)), Null, Null, Left, 0, Orange, White, White,
+			Visible To and String, Default Visibility);
+	}
+}
+
+rule("INIT: Setup Duel Zone")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+	}
+
+	actions
+	{
+		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			0)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 0), Value In Array(Global Variable(DuelZoneRadiusList),
+			0), Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			1)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 1), Value In Array(Global Variable(DuelZoneRadiusList),
+			1), Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			2)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 2), Value In Array(Global Variable(DuelZoneRadiusList),
+			2), Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			3)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 3), Value In Array(Global Variable(DuelZoneRadiusList),
+			3), Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			4)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 4), Value In Array(Global Variable(DuelZoneRadiusList),
+			4), Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			5)), Sphere, Red, Value In Array(Global Variable(DuelZonePositionList), 5), Value In Array(Global Variable(DuelZoneRadiusList),
+			5), Visible To Position and Radius);
+	}
+}
+
+rule("INIT: Create Barriers")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Sphere, Orange, Value In Array(Global Variable(BarrierPositionList), 0), Value In Array(
+			Global Variable(BarrierRadiusList), 0), Visible To);
+		Abort If(Compare(Count Of(Global Variable(BarrierPositionList)), <, 1));
+		Create Effect(All Players(All Teams), Sphere, Orange, Value In Array(Global Variable(BarrierPositionList), 1), Value In Array(
+			Global Variable(BarrierRadiusList), 1), Visible To);
+		Abort If(Compare(Count Of(Global Variable(BarrierPositionList)), <, 2));
+		Create Effect(All Players(All Teams), Sphere, Orange, Value In Array(Global Variable(BarrierPositionList), 2), Value In Array(
+			Global Variable(BarrierRadiusList), 2), Visible To);
+		Abort If(Compare(Count Of(Global Variable(BarrierPositionList)), <, 3));
+	}
+}
+
+rule("INIT PLAYER: Setup Data")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, ActiveDuelZone, -1.000);
+		disabled Disable Built-In Game Mode Respawning(Event Player);
+	}
+}
+
+rule("ON STATE 1: Teleport Player To Lobby")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Player Variable(Event Player, PlayerState) == 1;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Add(Global Variable(LobbyPosition), Vector(Random Real(-3.000, 3), 0, Random Real(-3.000, 3))));
+		Set Player Variable(Event Player, ActiveDuelZone, -1.000);
+		Set Player Variable(Event Player, PlayerState, 2);
+		Set Player Variable(Event Player, MatchScore, 0);
+		Set Player Variable(Event Player, TimeSpentWaiting, 0);
+		Chase Player Variable At Rate(Event Player, TimeSpentWaiting, 9999, 1, None);
+		Set Status(Event Player, Null, Phased Out, 9999);
+		Skip If(Compare(Hero Of(Event Player), !=, Hero(Tracer)), 1);
+		Disallow Button(Event Player, Ability 2);
+		Set Global Variable(ZDebug, Filtered Array(All Living Players(All Teams), And(Compare(Player Variable(Current Array Element,
+			PlayerState), ==, 2), Compare(Event Player, !=, Current Array Element))));
+		Skip If(Compare(Count Of(Filtered Array(All Living Players(All Teams), And(Compare(Player Variable(Current Array Element,
+			PlayerState), ==, 2), Compare(Event Player, !=, Current Array Element)))), >, 1), 1);
+		Set Global Variable(MatchmakerTicker, Global Variable(ConfigMatchmakerTimer));
+	}
+}
+
+rule("ON STATE 3: Teleport / Reset Player For Match")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Player Variable(Event Player, PlayerState) == 3;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, TempHeroWasOn, Hero Of(Event Player));
+		Start Forcing Player To Be Hero(Event Player, Hero(Brigitte));
+		Wait(0.016, Ignore Condition);
+		Start Forcing Player To Be Hero(Event Player, Player Variable(Event Player, TempHeroWasOn));
+		Stop Forcing Player To Be Hero(Event Player);
+		Disallow Button(Event Player, Primary Fire);
+		Disallow Button(Event Player, Secondary Fire);
+		Disallow Button(Event Player, Ability 1);
+		Disallow Button(Event Player, Ability 2);
+		Teleport(Event Player, Value In Array(Global Variable(DuelZoneSpawnList), Add(Multiply(Player Variable(Event Player,
+			ActiveDuelZone), 2), Player Variable(Event Player, PlayerNumberOffset))));
+		Set Facing(Event Player, Direction Towards(Eye Position(Event Player), Value In Array(Global Variable(DuelZoneSpawnList), Add(
+			Multiply(Player Variable(Event Player, ActiveDuelZone), 2), Player Variable(Event Player, EnemyPlayerNumberOffset)))),
+			To World);
+		Apply Impulse(Event Player, Down, 0.001, To World, Cancel Contrary Motion);
+		Apply Impulse(Event Player, Up, 0.001, To World, Cancel Contrary Motion);
+		Apply Impulse(Event Player, Backward, 0.001, To World, Cancel Contrary Motion);
+		Apply Impulse(Event Player, Forward, 0.001, To World, Cancel Contrary Motion);
+		Apply Impulse(Event Player, Right, 0.001, To World, Cancel Contrary Motion);
+		Apply Impulse(Event Player, Left, 0.001, To World, Cancel Contrary Motion);
+		Set Player Variable(Event Player, PlayerState, 4);
+		disabled Set Status(Event Player, Null, Rooted, 2.500);
+		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
+		Small Message(Event Player, 3);
+		Wait(1, Ignore Condition);
+		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
+		Small Message(Event Player, 2);
+		Wait(1, Ignore Condition);
+		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
+		Small Message(Event Player, 1);
+		Wait(1, Ignore Condition);
+		Play Effect(Event Player, Ring Explosion Sound, White, Event Player, 86);
+		Small Message(Event Player, Custom String("FIGHT!", Null, Null, Null));
+		Allow Button(Event Player, Primary Fire);
+		Allow Button(Event Player, Secondary Fire);
+		Allow Button(Event Player, Ability 1);
+		Allow Button(Event Player, Ability 2);
+		Set Status(Event Player, Null, Phased Out, 0);
+	}
+}
+
+rule("ON STATE 4: Player In Match Dies")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Player Variable(Event Player, PlayerState) == 4;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, TempOpponent, Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player,
+			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
+			Current Array Element))));
+		Set Player Variable(Event Player, TempOpponent, First Of(Player Variable(Event Player, TempOpponent)));
+		Modify Player Variable(Player Variable(Event Player, TempOpponent), MatchScore, Add, 1);
+		Skip If(Compare(Player Variable(Player Variable(Event Player, TempOpponent), MatchScore), >=, Global Variable(ConfigScoreToWin)),
+			5);
+		Play Effect(Player Variable(Event Player, TempOpponent), Explosion Sound, White, Player Variable(Event Player, TempOpponent), 80);
+		Set Player Variable(Event Player, PlayerState, 5);
+		Disable Built-In Game Mode Respawning(Player Variable(Event Player, TempOpponent));
+		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 6);
+		Abort;
+		Modify Player Score(Event Player, -1.000);
+		Modify Player Score(Player Variable(Event Player, TempOpponent), 1);
+		Set Player Variable(Event Player, PlayerState, 1);
+		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 1);
+		Big Message(Player Variable(Event Player, TempOpponent), Custom String("YOU WON!", Null, Null, Null));
+	}
+}
+
+rule("ON STATE 5: Wait For Loser to Spawn")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Player Variable(Event Player, PlayerState) == 5;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, TempOpponent, Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player,
+			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
+			Current Array Element))));
+		Set Player Variable(Event Player, TempOpponent, First Of(Player Variable(Event Player, TempOpponent)));
+		Enable Built-In Game Mode Respawning(Player Variable(Event Player, TempOpponent));
+		Set Player Variable(Event Player, PlayerState, 3);
+		Resurrect(Player Variable(Event Player, TempOpponent));
+		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 3);
+	}
+}
+
+rule("ON: Lobby Player Dies")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Player Variable(Event Player, PlayerState) <= 2;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, PlayerState, 0);
+		Set Player Variable(Event Player, PlayerState, 1);
+	}
+}
+
+rule("ON: Player Spawns")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Player Variable(Event Player, PlayerState, 1);
+	}
+}
+
+rule("ON: Run Matchmaker When Clock is 0")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global Variable(MatchmakerTicker) == 0;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Set Global Variable(TempWaitingPlayersList, Filtered Array(All Living Players(All Teams), Compare(Player Variable(
+			Current Array Element, PlayerState), ==, 2)));
+		Abort If(Compare(Count Of(Global Variable(TempWaitingPlayersList)), <, 2));
+		Set Global Variable(TempWaitingPlayersList, Randomized Array(Global Variable(TempWaitingPlayersList)));
+		Set Global Variable(TempWaitingPlayersList, Sorted Array(Global Variable(TempWaitingPlayersList), Multiply(Add(Multiply(Score Of(
+			Current Array Element), 25), Player Variable(Current Array Element, TimeSpentWaiting)), -1.000)));
+		Skip If(Compare(Random Real(0, 1000), >, 500), 3);
+		Set Global Variable(TempPlayerOne, Value In Array(Global Variable(TempWaitingPlayersList), 0));
+		Set Global Variable(TempPlayerTwo, Value In Array(Global Variable(TempWaitingPlayersList), 1));
+		Skip(2);
+		Set Global Variable(TempPlayerOne, Value In Array(Global Variable(TempWaitingPlayersList), 1));
+		Set Global Variable(TempPlayerTwo, Value In Array(Global Variable(TempWaitingPlayersList), 0));
+		Set Global Variable(TempAvailableDuelZones, Empty Array);
+		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			0))), !=, 0), 1);
+		Modify Global Variable(TempAvailableDuelZones, Append To Array, 0);
+		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			1))), !=, 0), 1);
+		Modify Global Variable(TempAvailableDuelZones, Append To Array, 1);
+		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			2))), !=, 0), 1);
+		Modify Global Variable(TempAvailableDuelZones, Append To Array, 2);
+		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			3))), !=, 0), 1);
+		Modify Global Variable(TempAvailableDuelZones, Append To Array, 3);
+		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			4))), !=, 0), 1);
+		Modify Global Variable(TempAvailableDuelZones, Append To Array, 4);
+		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
+			5))), !=, 0), 1);
+		Modify Global Variable(TempAvailableDuelZones, Append To Array, 5);
+		Set Global Variable(TempAvailableDuelZones, Random Value In Array(Global Variable(TempAvailableDuelZones)));
+		Set Player Variable(Global Variable(TempPlayerOne), ActiveDuelZone, Global Variable(TempAvailableDuelZones));
+		Set Player Variable(Global Variable(TempPlayerTwo), ActiveDuelZone, Global Variable(TempAvailableDuelZones));
+		Set Player Variable(Global Variable(TempPlayerOne), PlayerState, 3);
+		Set Player Variable(Global Variable(TempPlayerTwo), PlayerState, 3);
+		Set Player Variable(Global Variable(TempPlayerOne), PlayerNumberOffset, 0);
+		Set Player Variable(Global Variable(TempPlayerTwo), PlayerNumberOffset, 1);
+		Set Player Variable(Global Variable(TempPlayerOne), EnemyPlayerNumberOffset, 1);
+		Set Player Variable(Global Variable(TempPlayerTwo), EnemyPlayerNumberOffset, 0);
+		Loop If(Compare(Count Of(Global Variable(TempWaitingPlayersList)), >=, 2));
+	}
+}
+
+rule("LOOP: Matchmaker Clock")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global Variable(MatchmakerTicker) == 0;
+	}
+
+	actions
+	{
+		Set Global Variable(MatchmakerTicker, Global Variable(ConfigMatchmakerTimer));
+		Chase Global Variable At Rate(MatchmakerTicker, 0, 1, None);
+	}
+}
+
+rule("ON: Damaging Non-Opponent During Match")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Player Variable(Victim, PlayerState) > 2;
+		Victim != Event Player;
+		Player Variable(Event Player, ActiveDuelZone) != Player Variable(Victim, ActiveDuelZone);
+	}
+
+	actions
+	{
+		Kill(Event Player, Null);
+		Big Message(All Players(All Teams), Custom String("NO GRIEFING", Null, Null, Null));
+		Modify Player Score(Event Player, -10.000);
+	}
+}
+
+rule("COLLIDE: Outside of Duel Zone")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Player Variable(Event Player, PlayerState) >= 4;
+		Distance Between(Event Player, Value In Array(Global Variable(DuelZonePositionList), Player Variable(Event Player,
+			ActiveDuelZone))) >= Subtract(Value In Array(Global Variable(DuelZoneRadiusList), Player Variable(Event Player,
+			ActiveDuelZone)), 1);
+	}
+
+	actions
+	{
+		Apply Impulse(Event Player, Multiply(Direction Towards(Event Player, Value In Array(Global Variable(DuelZonePositionList),
+			Player Variable(Event Player, ActiveDuelZone))), 1), 20, To World, Cancel Contrary Motion);
+		Damage(Event Player, Null, 50);
+		Set Status(Event Player, Null, Burning, 1);
+		Wait(0.250, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("COLLIDE: Inside of Barrier")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Player Variable(Event Player, PlayerState) >= 4;
+		Count Of(Filtered Array(Global Variable(BarrierPositionList), Compare(Subtract(Distance Between(Current Array Element,
+			Event Player), 0.500), <=, Value In Array(Global Variable(BarrierRadiusList), Index Of Array Value(Global Variable(
+			BarrierPositionList), Current Array Element))))) > 0;
+	}
+
+	actions
+	{
+		Kill(Event Player, Null);
+		Big Message(Event Player, Custom String("OUT OF BOUNDS", Null, Null, Null));
+	}
+}
+
+rule("ON: Player Disconnected")
+{
+	event
+	{
+		Player Left Match;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
+			ActiveDuelZone), ==, 0)));
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
+			ActiveDuelZone), ==, 1)));
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
+			ActiveDuelZone), ==, 2)));
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
+			ActiveDuelZone), ==, 3)));
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
+			ActiveDuelZone), ==, 4)));
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
+			ActiveDuelZone), ==, 5)));
+		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 2);
+		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
+	}
+}
