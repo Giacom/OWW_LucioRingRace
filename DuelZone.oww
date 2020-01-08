@@ -67,6 +67,7 @@ rule("DEBUG: Init Debug")
 			Visible To and String, Default Visibility);
 		Create Effect(All Players(All Teams), Sphere, Red, Global Variable(DEBUG_ZonePosition), Global Variable(DEBUG_ZoneRadius),
 			Visible To Position and Radius);
+		disabled Abort;
 		Wait(4, Ignore Condition);
 		Create Dummy Bot(Hero(McCree), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
 		Create Dummy Bot(Hero(Ashe), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
@@ -199,10 +200,10 @@ rule("MAP: Havana")
 		Modify Global Variable(DuelZoneRadiusList, Append To Array, 35);
 		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(-108.678, 5.199, -53.831));
 		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(-83.129, 5.348, -78.313));
-		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(-4.039, 6, -80.952));
-		Modify Global Variable(DuelZoneRadiusList, Append To Array, 20);
-		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(1.384, 7.348, -89.456));
-		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(1.284, 7.348, -68.823));
+		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(31.100, 6.199, -83.700));
+		Modify Global Variable(DuelZoneRadiusList, Append To Array, 54);
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(-2.441, 7.177, -95.874));
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(18.313, 7.174, -51.988));
 		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(33.053, 17.395, -77.519));
 		Modify Global Variable(DuelZoneRadiusList, Append To Array, 75);
 		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(6.941, 13.351, -74.360));
@@ -521,8 +522,9 @@ rule("ON STATE 4: Player In Match Dies")
 		Disable Built-In Game Mode Respawning(Player Variable(Event Player, TempOpponent));
 		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 7);
 		Abort;
-		Modify Player Score(Event Player, -1.000);
-		Modify Player Score(Player Variable(Event Player, TempOpponent), 1);
+		Set Player Score(Event Player, Max(Min(Add(Score Of(Event Player), -1.000), 5), 0));
+		Set Player Score(Player Variable(Event Player, TempOpponent), Max(Min(Add(Score Of(Player Variable(Event Player, TempOpponent)),
+			1), 5), 0));
 		Big Message(Player Variable(Event Player, TempOpponent), Custom String("YOU WON!", Null, Null, Null));
 		Wait(1, Ignore Condition);
 		Set Player Variable(Event Player, PlayerState, 1);
