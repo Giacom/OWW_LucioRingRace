@@ -16,6 +16,7 @@ variables
 		12: ConfigScoreToWin
 		13: ConfigMatchmakerTimer
 		14: MatchmakerTicker
+		15: LobbySignPosition
 		16: BarrierPositionList
 		17: BarrierRadiusList
 		19: TempOrphanPlayers
@@ -61,13 +62,13 @@ rule("DEBUG: Init Debug")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String("DEBUG INFO", Null, Null, Null), Left, -1.000, White, White, Red,
+		disabled Create HUD Text(All Players(All Teams), Null, Null, Custom String("DEBUG INFO", Null, Null, Null), Left, -1.000, White, White, Red,
 			Visible To and String, Default Visibility);
 		disabled Create HUD Text(All Players(All Teams), Null, Global Variable(DEBUG_ZonePosition), Null, Left, 0, White, White, White,
 			Visible To and String, Default Visibility);
 		disabled Create HUD Text(All Players(All Teams), Null, Global Variable(DEBUG_ZoneRadius), Null, Left, 0, White, White, White,
 			Visible To and String, Default Visibility);
-		Create Effect(All Players(All Teams), Sphere, Red, Global Variable(DEBUG_ZonePosition), Global Variable(DEBUG_ZoneRadius),
+		disabled Create Effect(All Players(All Teams), Sphere, Red, Global Variable(DEBUG_ZonePosition), Global Variable(DEBUG_ZoneRadius),
 			Visible To Position and Radius);
 		disabled Abort;
 		Wait(4, Ignore Condition);
@@ -190,12 +191,11 @@ rule("MAP: Havana")
 
 	actions
 	{
-		Create In-World Text(All Players(All Teams), Custom String("Waiting Room", Null, Null, Null), Vector(-92.542, 7.250, -70.485), 2,
-			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Set Global Variable(LobbyPosition, Vector(-102.513, 6, -73.331));
+		Set Global Variable(LobbySignPosition, Vector(-94.040, 6.556, -69.077));
 		Set Global Variable(DuelZonePositionList, Empty Array);
 		Set Global Variable(DuelZoneRadiusList, Empty Array);
 		Set Global Variable(DuelZoneSpawnList, Empty Array);
-		Set Global Variable(LobbyPosition, Vector(-102.513, 5.349, -73.331));
 		Set Global Variable(BarrierPositionList, Empty Array);
 		Set Global Variable(BarrierRadiusList, Empty Array);
 		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(-96.249, 4, -68.923));
@@ -276,7 +276,7 @@ rule("INIT: Post-Assemble Heroes")
 	}
 }
 
-rule("INIT: Global HUD")
+rule("INIT: Global HUD and Signs")
 {
 	event
 	{
@@ -285,20 +285,31 @@ rule("INIT: Global HUD")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String("You are playing Giacomand's Duel Zones", Null, Null, Null),
-			Right, -10.000, White, White, Red, Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String("Score to win is {0}", Global Variable(ConfigScoreToWin), Null,
+		Create HUD Text(All Players(All Teams), Null, Custom String("Giacomand's Duel Zones", Null, Null, Null), Custom String(
+			"Server Load - {0}% - {1}% avg - {2}% peak", Server Load, Server Load Average, Server Load Peak), Left, -10.000, White, Yellow,
+			White, Visible To and String, Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), Null, Null, Custom String("Score to win is {0}", Global Variable(ConfigScoreToWin), Null,
 			Null), Right, 0, White, White, White, Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String("Matchmaker Timer is {0} sec(s)", Global Variable(
+		disabled Create HUD Text(All Players(All Teams), Null, Null, Custom String("Matchmaker Timer is {0} sec(s)", Global Variable(
 			ConfigMatchmakerTimer), Null, Null), Right, 0, White, White, White, Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String("{0}% - {1}% avg - {2}% peak", Server Load, Server Load Average,
-			Server Load Peak), Right, 1, White, White, White, Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, PlayerState), ==, 2)), Null,
+		disabled Create HUD Text(All Players(All Teams), Null, Custom String("Server Load - {0}% - {1}% avg - {2}% peak", Server Load,
+			Server Load Average, Server Load Peak), Null, Right, 1, White, White, White, Visible To and String, Default Visibility);
+		disabled Create HUD Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, PlayerState), ==, 2)), Null,
 			Null, Custom String("Searching for opponent..", Null, Null, Null), Left, -1.000, White, White, White, Visible To and String,
 			Default Visibility);
-		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, PlayerState), ==, 2)), Null,
+		disabled Create HUD Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, PlayerState), ==, 2)), Null,
 			Null, Custom String("Matches will be created in {0} sec(s)", Global Variable(MatchmakerTicker), Null, Null), Left, 0, White,
 			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("", Null, Null, Null), String("----------", Null, Null, Null), Left, 0, White,
+			Yellow, White, Visible To and String, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Waiting Room", Null, Null, Null), Add(Global Variable(
+			LobbySignPosition), Vector(0, 2, 0)), 2, Clip Against Surfaces, Visible To Position and String, Yellow, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Score to win is {0}", Global Variable(ConfigScoreToWin), Null, Null),
+			Add(Global Variable(LobbySignPosition), Vector(0, 1.500, 0)), 1.500, Clip Against Surfaces, Visible To Position and String,
+			White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Matches will be created in {0} sec(s)..", Global Variable(
+			MatchmakerTicker), Null, Null), Add(Global Variable(LobbySignPosition), Vector(0, 1, 0)), 1.500, Clip Against Surfaces,
+			Visible To Position and String, White, Default Visibility);
 	}
 }
 
@@ -318,17 +329,18 @@ rule("INIT: Player HUD")
 			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
 			Current Array Element))))), Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone),
 			==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), String(
-			"{0} - {1}", Player Variable(Event Player, MatchScore), Player Variable(Event Player, MatchScore), Null)), Null, Null, Left, 0,
-			Orange, White, White, Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), String(
-			"{0} {1} {2}", Hero Icon String(Hero Of(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player,
-			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
-			Current Array Element))))), Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone),
-			==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), String(
 			"{0} - {1}", Player Variable(Event Player, MatchScore), Player Variable(Filtered Array(All Players(All Teams), And(Compare(
 			Player Variable(Event Player, ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(
 			Event Player, !=, Current Array Element))), MatchScore), Null)), Null, Null, Left, 0, Orange, White, White,
 			Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), Hero Icon String(
+			Hero Of(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone), ==, Player Variable(
+			Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))))), Filtered Array(All Players(
+			All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone), ==, Player Variable(Current Array Element,
+			ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), String("{0} - {1}", Player Variable(Event Player,
+			MatchScore), Player Variable(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone),
+			==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), MatchScore),
+			Null), Left, 1, Team 2, Team 2, White, Visible To and String, Default Visibility);
 	}
 }
 
@@ -401,6 +413,7 @@ rule("INIT PLAYER: Setup Data")
 	{
 		Set Player Variable(Event Player, ActiveDuelZone, -1.000);
 		disabled Disable Built-In Game Mode Respawning(Event Player);
+		Preload Hero(Event Player, Hero(Brigitte));
 	}
 }
 
@@ -454,6 +467,10 @@ rule("ON STATE 3: Teleport / Reset Player For Match")
 
 	actions
 	{
+		Teleport(Event Player, Add(Global Variable(LobbyPosition), Vector(Random Real(-3.000, 3), 100, Random Real(-3.000, 3))));
+		disabled Respawn(Event Player);
+		Preload Hero(Event Player, Hero(Brigitte));
+		Wait(0.250, Ignore Condition);
 		Set Player Variable(Event Player, TempHeroWasOn, Hero Of(Event Player));
 		Start Forcing Player To Be Hero(Event Player, Hero(Brigitte));
 		Wait(0.016, Ignore Condition);
@@ -465,15 +482,16 @@ rule("ON STATE 3: Teleport / Reset Player For Match")
 		Disallow Button(Event Player, Ability 2);
 		Teleport(Event Player, Value In Array(Global Variable(DuelZoneSpawnList), Add(Multiply(Player Variable(Event Player,
 			ActiveDuelZone), 2), Player Variable(Event Player, PlayerNumberOffset))));
+		Wait(0.100, Ignore Condition);
 		Set Facing(Event Player, Direction Towards(Eye Position(Event Player), Value In Array(Global Variable(DuelZoneSpawnList), Add(
 			Multiply(Player Variable(Event Player, ActiveDuelZone), 2), Player Variable(Event Player, EnemyPlayerNumberOffset)))),
 			To World);
-		Apply Impulse(Event Player, Down, 0.001, To World, Cancel Contrary Motion);
-		Apply Impulse(Event Player, Up, 0.001, To World, Cancel Contrary Motion);
-		Apply Impulse(Event Player, Backward, 0.001, To World, Cancel Contrary Motion);
-		Apply Impulse(Event Player, Forward, 0.001, To World, Cancel Contrary Motion);
-		Apply Impulse(Event Player, Right, 0.001, To World, Cancel Contrary Motion);
-		Apply Impulse(Event Player, Left, 0.001, To World, Cancel Contrary Motion);
+		disabled Apply Impulse(Event Player, Down, 0.001, To World, Cancel Contrary Motion);
+		disabled Apply Impulse(Event Player, Up, 0.001, To World, Cancel Contrary Motion);
+		disabled Apply Impulse(Event Player, Backward, 0.001, To World, Cancel Contrary Motion);
+		disabled Apply Impulse(Event Player, Forward, 0.001, To World, Cancel Contrary Motion);
+		disabled Apply Impulse(Event Player, Right, 0.001, To World, Cancel Contrary Motion);
+		disabled Apply Impulse(Event Player, Left, 0.001, To World, Cancel Contrary Motion);
 		disabled Set Status(Event Player, Null, Rooted, 2.500);
 		Set Player Variable(Event Player, PlayerState, 4);
 		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
