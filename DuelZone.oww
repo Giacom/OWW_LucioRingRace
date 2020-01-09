@@ -30,6 +30,8 @@ variables
 		7: TempOpponent
 		8: TimeSpentWaiting
 		9: TempHeroWasOn
+		11: LastOpponent
+		12: RepeatedOpponentCounter
 }
 
 disabled rule("DEBUG: Enable this for Debug Mode")
@@ -529,6 +531,14 @@ rule("ON STATE 4: Player In Match Dies")
 		Wait(1, Ignore Condition);
 		Set Player Variable(Event Player, PlayerState, 1);
 		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 1);
+		Skip If(Compare(Player Variable(Event Player, LastOpponent), !=, Player Variable(Event Player, TempOpponent)), 2);
+		Modify Player Variable(Event Player, RepeatedOpponentCounter, Add, 1);
+		Skip(1);
+		Set Player Variable(Event Player, RepeatedOpponentCounter, 0);
+		Set Player Variable(Event Player, LastOpponent, Player Variable(Event Player, TempOpponent));
+		Skip If(Compare(Player Variable(Player Variable(Event Player, TempOpponent), LastOpponent), ==, Event Player), 1);
+		Set Player Variable(Player Variable(Event Player, TempOpponent), RepeatedOpponentCounter, 0);
+		Set Player Variable(Player Variable(Event Player, TempOpponent), LastOpponent, Event Player);
 	}
 }
 
@@ -667,7 +677,8 @@ rule("ON: Run Matchmaker When Clock is 0")
 		Abort If(Compare(Count Of(Global Variable(TempWaitingPlayersList)), <, 2));
 		Set Global Variable(TempWaitingPlayersList, Randomized Array(Global Variable(TempWaitingPlayersList)));
 		Set Global Variable(TempWaitingPlayersList, Sorted Array(Global Variable(TempWaitingPlayersList), Multiply(Add(Multiply(Score Of(
-			Current Array Element), 25), Player Variable(Current Array Element, TimeSpentWaiting)), -1.000)));
+			Current Array Element), 25), Subtract(Player Variable(Current Array Element, TimeSpentWaiting), Multiply(Player Variable(
+			Current Array Element, RepeatedOpponentCounter), 25))), -1.000)));
 		Skip If(Compare(Random Real(0, 1000), >, 500), 3);
 		Set Global Variable(TempPlayerOne, Value In Array(Global Variable(TempWaitingPlayersList), 0));
 		Set Global Variable(TempPlayerTwo, Value In Array(Global Variable(TempWaitingPlayersList), 1));
@@ -744,7 +755,7 @@ rule("ON: Damaging Non-Opponent During Match")
 	actions
 	{
 		Kill(Event Player, Null);
-		Big Message(All Players(All Teams), Custom String("NO GRIEFING", Null, Null, Null));
+		Big Message(Event Player, Custom String("NO GRIEFING", Null, Null, Null));
 		Modify Player Score(Event Player, -10.000);
 	}
 }
@@ -815,37 +826,37 @@ rule("ON: Player Disconnected")
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 0)));
 		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
 		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 1)));
 		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
 		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 2)));
 		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
 		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 3)));
 		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
 		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 4)));
 		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
 		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
 			ActiveDuelZone), ==, 5)));
 		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Modify Player Score(Global Variable(TempOrphanPlayers), 1);
+		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
 		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
 	}
