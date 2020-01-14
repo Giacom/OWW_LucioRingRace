@@ -20,11 +20,14 @@ variables
 		16: BarrierPositionList
 		17: BarrierRadiusList
 		19: TempOrphanPlayers
+		22: HeroPoolArray
+		23: TempHeroPool
 		25: ZDebug
 
 	player:
 		0: ActiveDuelZone
 		1: PlayerState
+		2: MatchLosses
 		4: PlayerNumberOffset
 		5: EnemyPlayerNumberOffset
 		6: MatchScore
@@ -33,6 +36,7 @@ variables
 		9: TempHeroWasOn
 		11: LastOpponent
 		12: RepeatedOpponentCounter
+		13: CurrentOpponent
 }
 
 disabled rule("DEBUG: Enable this for Debug Mode")
@@ -238,7 +242,7 @@ rule("CONFIG: Setup Config")
 
 	actions
 	{
-		Set Global Variable(ConfigScoreToWin, 2);
+		Set Global Variable(ConfigScoreToWin, 3);
 		Set Global Variable(ConfigMatchmakerTimer, 15);
 	}
 }
@@ -273,6 +277,49 @@ rule("INIT: Post-Assemble Heroes")
 	actions
 	{
 		Set Match Time(3590);
+	}
+}
+
+rule("INIT: Setup Random 5 * 6 Sized Hero Pool")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Global Variable(HeroPoolArray, Empty Array);
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
+		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
 	}
 }
 
@@ -324,16 +371,7 @@ rule("INIT: Player HUD")
 
 	actions
 	{
-		disabled Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), String(
-			"{0} {1} {2}", Hero Icon String(Hero Of(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player,
-			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
-			Current Array Element))))), Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone),
-			==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), String(
-			"{0} - {1}", Player Variable(Event Player, MatchScore), Player Variable(Filtered Array(All Players(All Teams), And(Compare(
-			Player Variable(Event Player, ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(
-			Event Player, !=, Current Array Element))), MatchScore), Null)), Null, Null, Left, 0, Orange, White, White,
-			Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), Hero Icon String(
+		disabled Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), Hero Icon String(
 			Hero Of(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone), ==, Player Variable(
 			Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))))), Filtered Array(All Players(
 			All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone), ==, Player Variable(Current Array Element,
@@ -341,6 +379,21 @@ rule("INIT: Player HUD")
 			MatchScore), Player Variable(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone),
 			==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), MatchScore),
 			Null), Left, 1, Team 2, Team 2, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), Hero Icon String(
+			Value In Array(Global Variable(HeroPoolArray), Add(Multiply(5, Player Variable(Event Player, ActiveDuelZone)), Add(0,
+			Player Variable(Player Variable(Event Player, CurrentOpponent), MatchLosses))))), Player Variable(Event Player,
+			CurrentOpponent), String("{0} - {1}", Player Variable(Event Player, MatchScore), Player Variable(Player Variable(Event Player,
+			CurrentOpponent), MatchScore), Null), Left, 1, Team 2, Team 2, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(Event Player, And(Compare(Player Variable(Current Array Element, PlayerState), >, 2), Compare(
+			Player Variable(Player Variable(Event Player, CurrentOpponent), MatchLosses), <, 2))), Hero Icon String(Value In Array(
+			Global Variable(HeroPoolArray), Add(Multiply(5, Player Variable(Event Player, ActiveDuelZone)), Add(Player Variable(
+			Player Variable(Event Player, CurrentOpponent), MatchLosses), 1)))), Null, Null, Left, 2, Team 2, Team 2, White,
+			Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(Event Player, And(Compare(Player Variable(Current Array Element, PlayerState), >, 2), Compare(
+			Player Variable(Player Variable(Event Player, CurrentOpponent), MatchLosses), <, 1))), Hero Icon String(Value In Array(
+			Global Variable(HeroPoolArray), Add(Multiply(5, Player Variable(Event Player, ActiveDuelZone)), Add(Player Variable(
+			Player Variable(Event Player, CurrentOpponent), MatchLosses), 2)))), Null, Null, Left, 3, Team 2, Team 2, White,
+			Visible To and String, Default Visibility);
 	}
 }
 
@@ -436,8 +489,9 @@ rule("ON STATE 1: Teleport Player To Lobby")
 	{
 		Teleport(Event Player, Add(Global Variable(LobbyPosition), Vector(Random Real(-3.000, 3), 0, Random Real(-3.000, 3))));
 		Set Player Variable(Event Player, ActiveDuelZone, -1.000);
-		Set Player Variable(Event Player, PlayerState, 2);
+		Set Player Variable(Event Player, MatchLosses, 0);
 		Set Player Variable(Event Player, MatchScore, 0);
+		Set Player Variable(Event Player, PlayerState, 2);
 		Set Player Variable(Event Player, TimeSpentWaiting, 0);
 		Chase Player Variable At Rate(Event Player, TimeSpentWaiting, 9999, 1, None);
 		Set Status(Event Player, Null, Phased Out, 9999);
@@ -468,13 +522,13 @@ rule("ON STATE 3: Teleport / Reset Player For Match")
 	actions
 	{
 		Teleport(Event Player, Add(Global Variable(LobbyPosition), Vector(Random Real(-3.000, 3), 100, Random Real(-3.000, 3))));
-		disabled Respawn(Event Player);
 		Preload Hero(Event Player, Hero(Brigitte));
 		Wait(0.250, Ignore Condition);
-		Set Player Variable(Event Player, TempHeroWasOn, Hero Of(Event Player));
+		disabled Set Player Variable(Event Player, TempHeroWasOn, Hero Of(Event Player));
 		Start Forcing Player To Be Hero(Event Player, Hero(Brigitte));
 		Wait(0.016, Ignore Condition);
-		Start Forcing Player To Be Hero(Event Player, Player Variable(Event Player, TempHeroWasOn));
+		Start Forcing Player To Be Hero(Event Player, Value In Array(Global Variable(HeroPoolArray), Add(Multiply(5, Player Variable(
+			Event Player, ActiveDuelZone)), Player Variable(Event Player, MatchLosses))));
 		Stop Forcing Player To Be Hero(Event Player);
 		Disallow Button(Event Player, Primary Fire);
 		Disallow Button(Event Player, Secondary Fire);
@@ -486,13 +540,6 @@ rule("ON STATE 3: Teleport / Reset Player For Match")
 		Set Facing(Event Player, Direction Towards(Eye Position(Event Player), Value In Array(Global Variable(DuelZoneSpawnList), Add(
 			Multiply(Player Variable(Event Player, ActiveDuelZone), 2), Player Variable(Event Player, EnemyPlayerNumberOffset)))),
 			To World);
-		disabled Apply Impulse(Event Player, Down, 0.001, To World, Cancel Contrary Motion);
-		disabled Apply Impulse(Event Player, Up, 0.001, To World, Cancel Contrary Motion);
-		disabled Apply Impulse(Event Player, Backward, 0.001, To World, Cancel Contrary Motion);
-		disabled Apply Impulse(Event Player, Forward, 0.001, To World, Cancel Contrary Motion);
-		disabled Apply Impulse(Event Player, Right, 0.001, To World, Cancel Contrary Motion);
-		disabled Apply Impulse(Event Player, Left, 0.001, To World, Cancel Contrary Motion);
-		disabled Set Status(Event Player, Null, Rooted, 2.500);
 		Set Player Variable(Event Player, PlayerState, 4);
 		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
 		Small Message(Event Player, 3);
@@ -530,6 +577,7 @@ rule("ON STATE 4: Player In Match Dies")
 
 	actions
 	{
+		Modify Player Variable(Event Player, MatchLosses, Add, 1);
 		Set Player Variable(Event Player, TempOpponent, Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player,
 			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
 			Current Array Element))));
@@ -731,6 +779,19 @@ rule("ON: Run Matchmaker When Clock is 0")
 		Set Player Variable(Global Variable(TempPlayerTwo), PlayerNumberOffset, 1);
 		Set Player Variable(Global Variable(TempPlayerOne), EnemyPlayerNumberOffset, 1);
 		Set Player Variable(Global Variable(TempPlayerTwo), EnemyPlayerNumberOffset, 0);
+		Set Global Variable(TempHeroPool, Randomized Array(Allowed Heroes(Global Variable(TempPlayerOne))));
+		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 0), Value In Array(
+			Global Variable(TempHeroPool), 0));
+		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 1), Value In Array(
+			Global Variable(TempHeroPool), 1));
+		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 2), Value In Array(
+			Global Variable(TempHeroPool), 2));
+		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 3), Value In Array(
+			Global Variable(TempHeroPool), 3));
+		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 4), Value In Array(
+			Global Variable(TempHeroPool), 4));
+		Set Player Variable(Global Variable(TempPlayerOne), CurrentOpponent, Global Variable(TempPlayerTwo));
+		Set Player Variable(Global Variable(TempPlayerTwo), CurrentOpponent, Global Variable(TempPlayerOne));
 		Loop If(Compare(Count Of(Global Variable(TempWaitingPlayersList)), >=, 2));
 	}
 }
