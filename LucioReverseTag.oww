@@ -1,0 +1,186 @@
+variables
+{
+	global:
+		0: Tagged
+		1: LastTagged
+}
+
+rule("Setup")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Built-In Game Mode Scoring;
+		Create Icon(Filtered Array(All Players(All Teams), And(Compare(Global Variable(Tagged), !=, Null), Compare(Global Variable(Tagged),
+			!=, Current Array Element))), Add(Position Of(Global Variable(Tagged)), Vector(0, 1.500, 0)), Flag, Visible To and Position,
+			Green, True);
+		Create Effect(Filtered Array(All Players(All Teams), Compare(Global Variable(Tagged), !=, Null)), Cloud, Green, Add(Position Of(
+			Global Variable(Tagged)), Vector(0, -0.300, 0)), 1, Visible To Position and Radius);
+		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Current Array Element, ==, Global Variable(Tagged))), Null, Null,
+			Icon String(Flag), Left, 0, White, White, Green, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Current Array Element, !=, Global Variable(Tagged))), Null, Null,
+			Custom String("PUNCH = TAG", Null, Null, Null), Left, 0, White, White, Yellow, Visible To and String, Default Visibility);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(0, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(0, All Teams)))), Add(Position Of(Players In Slot(0, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(1, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(1, All Teams)))), Add(Position Of(Players In Slot(1, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(2, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(2, All Teams)))), Add(Position Of(Players In Slot(2, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(3, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(3, All Teams)))), Add(Position Of(Players In Slot(3, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(4, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(4, All Teams)))), Add(Position Of(Players In Slot(4, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(5, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(5, All Teams)))), Add(Position Of(Players In Slot(5, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(6, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(6, All Teams)))), Add(Position Of(Players In Slot(6, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(7, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(7, All Teams)))), Add(Position Of(Players In Slot(7, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(8, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(8, All Teams)))), Add(Position Of(Players In Slot(8, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(9, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(9, All Teams)))), Add(Position Of(Players In Slot(9, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(10, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(10, All Teams)))), Add(Position Of(Players In Slot(10, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(11, All Teams), !=, Null), Compare(Global Variable(
+			Tagged), !=, Players In Slot(11, All Teams)))), Add(Position Of(Players In Slot(11, All Teams)), Vector(0, 1.500, 0)),
+			Arrow: Down, Visible To and Position, Team 2, True);
+	}
+}
+
+rule("No one is tagged, give it to someone")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global Variable(Tagged) == Null;
+		Is Game In Progress == True;
+	}
+
+	actions
+	{
+		Set Global Variable(Tagged, Random Value In Array(All Living Players(All Teams)));
+		Wait(1, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Tagged player took melee damage (HACKY)")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(Tagged) == Event Player;
+		Event Damage == 30;
+	}
+
+	actions
+	{
+		Set Global Variable(Tagged, Attacker);
+	}
+}
+
+rule("Tagged player died somehow")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(Tagged) == Event Player;
+	}
+
+	actions
+	{
+		Set Global Variable(Tagged, Random Value In Array(Filtered Array(All Living Players(All Teams), Compare(Current Array Element, !=,
+			Global Variable(Tagged)))));
+	}
+}
+
+rule("Tagged player gets a point")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global Variable(Tagged) != Null;
+		Number of Players(All Teams) > 1;
+	}
+
+	actions
+	{
+		Modify Player Score(Global Variable(Tagged), 1);
+		Wait(5, Abort When False);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Any player took damage")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		disabled Small Message(All Players(All Teams), Event Damage);
+		Heal(Event Player, Null, 200);
+	}
+}
+
+rule("New Tagged")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global Variable(Tagged) != Global Variable(LastTagged);
+	}
+
+	actions
+	{
+		Big Message(Filtered Array(All Players(All Teams), Compare(Current Array Element, !=, Global Variable(Tagged))), Custom String(
+			"{0} IS IT!", Global Variable(Tagged), Null, Null));
+		Big Message(Global Variable(Tagged), Custom String("YOU ARE IT!", Null, Null, Null));
+		Play Effect(All Players(All Teams), Ring Explosion Sound, White, Global Variable(Tagged), 75);
+		Set Global Variable(LastTagged, Global Variable(Tagged));
+	}
+}
