@@ -37,6 +37,7 @@ variables
 		11: LastOpponent
 		12: RepeatedOpponentCounter
 		13: CurrentOpponent
+		14: Spectating
 }
 
 disabled rule("DEBUG: Enable this for Debug Mode")
@@ -52,7 +53,30 @@ disabled rule("DEBUG: Enable this for Debug Mode")
 	}
 }
 
-rule("DEBUG: Init Debug")
+rule("DEBUG: Init Player Debug")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global Variable(DEBUG) == True;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Position Of(Event Player), Null, Null, Left, 0, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player, Facing Direction Of(Event Player), Null, Null, Left, 0, White, White, White, Visible To and String,
+			Default Visibility);
+	}
+}
+
+rule("DEBUG: Init Global Debug")
 {
 	event
 	{
@@ -212,8 +236,8 @@ rule("MAP: Havana")
 		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(18.313, 7.174, -51.988));
 		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(33.053, 17.395, -77.519));
 		Modify Global Variable(DuelZoneRadiusList, Append To Array, 75);
-		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(6.941, 13.351, -74.360));
-		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(65.284, 13.352, -79.830));
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(28.513, 11.551, -95.304));
+		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(56.393, 13.551, -68.741));
 		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(66.423, 6.317, -94.950));
 		Modify Global Variable(DuelZoneRadiusList, Append To Array, 50);
 		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(76.863, 8.341, -72.242));
@@ -229,11 +253,11 @@ rule("MAP: Havana")
 		Modify Global Variable(BarrierPositionList, Append To Array, Vector(176.452, 11, -46.671));
 		Modify Global Variable(BarrierRadiusList, Append To Array, 15);
 		Modify Global Variable(BarrierPositionList, Append To Array, Vector(182.679, 25.659, -45.952));
-		Modify Global Variable(BarrierRadiusList, Append To Array, 20);
+		Modify Global Variable(BarrierRadiusList, Append To Array, 19);
 	}
 }
 
-rule("CONFIG: Setup Config")
+rule("CONFIG: Setup Config (ConfigScoreToWin is broken atm)")
 {
 	event
 	{
@@ -350,13 +374,15 @@ rule("INIT: Global HUD and Signs")
 		Create HUD Text(All Players(All Teams), Null, String("", Null, Null, Null), String("----------", Null, Null, Null), Left, 0, White,
 			Yellow, White, Visible To and String, Default Visibility);
 		Create In-World Text(All Players(All Teams), Custom String("Waiting Room", Null, Null, Null), Add(Global Variable(
-			LobbySignPosition), Vector(0, 2, 0)), 2, Clip Against Surfaces, Visible To Position and String, Yellow, Default Visibility);
+			LobbySignPosition), Vector(0, 2, 0)), 2, Clip Against Surfaces, Visible To and String, Yellow, Default Visibility);
 		Create In-World Text(All Players(All Teams), Custom String("Score to win is {0}", Global Variable(ConfigScoreToWin), Null, Null),
-			Add(Global Variable(LobbySignPosition), Vector(0, 1.500, 0)), 1.500, Clip Against Surfaces, Visible To Position and String,
-			White, Default Visibility);
+			Add(Global Variable(LobbySignPosition), Vector(0, 1.500, 0)), 1.500, Clip Against Surfaces, Visible To and String, White,
+			Default Visibility);
 		Create In-World Text(All Players(All Teams), Custom String("Matches will be created in {0} sec(s)..", Global Variable(
 			MatchmakerTicker), Null, Null), Add(Global Variable(LobbySignPosition), Vector(0, 1, 0)), 1.500, Clip Against Surfaces,
-			Visible To Position and String, White, Default Visibility);
+			Visible To and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("AFK ROOM", Null, Null, Null), Vector(-92.680, 5.500, -63.203), 1.500,
+			Clip Against Surfaces, Visible To and String, White, Default Visibility);
 	}
 }
 
@@ -441,13 +467,13 @@ rule("INIT: Create Barriers")
 
 	actions
 	{
-		Create Effect(All Players(All Teams), Sphere, Orange, Value In Array(Global Variable(BarrierPositionList), 0), Value In Array(
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(BarrierPositionList), 0), Value In Array(
 			Global Variable(BarrierRadiusList), 0), Visible To);
 		Abort If(Compare(Count Of(Global Variable(BarrierPositionList)), <, 1));
-		Create Effect(All Players(All Teams), Sphere, Orange, Value In Array(Global Variable(BarrierPositionList), 1), Value In Array(
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(BarrierPositionList), 1), Value In Array(
 			Global Variable(BarrierRadiusList), 1), Visible To);
 		Abort If(Compare(Count Of(Global Variable(BarrierPositionList)), <, 2));
-		Create Effect(All Players(All Teams), Sphere, Orange, Value In Array(Global Variable(BarrierPositionList), 2), Value In Array(
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(BarrierPositionList), 2), Value In Array(
 			Global Variable(BarrierRadiusList), 2), Visible To);
 		Abort If(Compare(Count Of(Global Variable(BarrierPositionList)), <, 3));
 	}
@@ -938,5 +964,281 @@ rule("ON: Player Disconnected")
 		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
 		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
 		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
+	}
+}
+
+rule("INIT: Create Spectate Zone Effects")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-102.000, 3, -82.000), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 1, Null, Null), Vector(-102.000, 6, -82.000), 2, Clip Against Surfaces,
+			Visible To Position and String, White, Default Visibility);
+		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
+			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 0))), Null), Vector(-102.000, 5,
+			-82.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-97.000, 3, -77.000), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 2, Null, Null), Vector(-97.000, 6, -77.000), 2, Clip Against Surfaces,
+			Visible To Position and String, White, Default Visibility);
+		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
+			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 1))), Null), Vector(-97.000, 5,
+			-77.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-86.000, 9.500, -65.000), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 3, Null, Null), Vector(-86.000, 12, -65.000), 2, Clip Against Surfaces,
+			Visible To Position and String, White, Default Visibility);
+		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
+			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 2))), Null), Vector(-86.000, 11,
+			-65.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-94.000, 9.500, -55.000), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 4, Null, Null), Vector(-94.000, 12, -55.000), 2, Clip Against Surfaces,
+			Visible To Position and String, White, Default Visibility);
+		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
+			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 3))), Null), Vector(-94.000, 11,
+			-55.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-108.934, 3, -70.808), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 5, Null, Null), Vector(-108.934, 6, -70.808), 2, Clip Against Surfaces,
+			Visible To Position and String, White, Default Visibility);
+		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
+			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 4))), Null), Vector(-108.934, 5,
+			-70.808), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-114.000, 3, -77.000), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 6, Null, Null), Vector(-114.000, 6, -77.000), 2, Clip Against Surfaces,
+			Visible To Position and String, White, Default Visibility);
+		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
+			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 5))), Null), Vector(-114.000, 5,
+			-77.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
+	}
+}
+
+rule("ON: On Spectate Zone #1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Event Player, Vector(-102.000, 5, -82.000)) <= 2;
+		Player Variable(Event Player, PlayerState) == 2;
+	}
+
+	actions
+	{
+		Abort If(Is In Air(Event Player));
+		Start Camera(Event Player, Vector(-68.000, 15, -46.000), Add(Vector(-68.321, 15, -46.540), Facing Direction Of(Event Player)), 10);
+		Set Facing(Event Player, Direction Towards(Vector(-68.000, 15, -46.000), Value In Array(Global Variable(DuelZonePositionList), 0)),
+			To World);
+		Set Player Variable(Event Player, Spectating, Vector(-102.000, 5, -82.000));
+		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+	}
+}
+
+rule("ON: On Spectate Zone #2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Event Player, Vector(-97.000, 5, -77.000)) <= 2;
+		Player Variable(Event Player, PlayerState) == 2;
+	}
+
+	actions
+	{
+		Abort If(Is In Air(Event Player));
+		Start Camera(Event Player, Vector(-6.753, 8, -58.626), Add(Vector(-6.753, 8, -58.626), Facing Direction Of(Event Player)), 10);
+		Set Facing(Event Player, Direction Towards(Vector(-68.000, 15, -46.000), Value In Array(Global Variable(DuelZonePositionList), 1)),
+			To World);
+		Set Player Variable(Event Player, Spectating, Vector(-97.000, 5, -77.000));
+		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+	}
+}
+
+rule("ON: On Spectate Zone #3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Event Player, Vector(-86.000, 11, -65.000)) <= 2;
+		Player Variable(Event Player, PlayerState) == 2;
+	}
+
+	actions
+	{
+		Abort If(Is In Air(Event Player));
+		Start Camera(Event Player, Vector(32.976, 19.508, -74.900), Add(Vector(32.976, 19.508, -74.900), Facing Direction Of(
+			Event Player)), 10);
+		Set Facing(Event Player, Direction Towards(Vector(-86.000, 11, -65.000), Value In Array(Global Variable(DuelZonePositionList), 2)),
+			To World);
+		Set Player Variable(Event Player, Spectating, Vector(-86.000, 11, -65.000));
+		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+	}
+}
+
+rule("ON: On Spectate Zone #4")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Event Player, Vector(-94.000, 11, -55.000)) <= 2;
+		Player Variable(Event Player, PlayerState) == 2;
+	}
+
+	actions
+	{
+		Abort If(Is In Air(Event Player));
+		Start Camera(Event Player, Vector(98.003, 19, -72.840), Add(Vector(98.003, 19, -72.840), Facing Direction Of(Event Player)), 10);
+		Set Facing(Event Player, Direction Towards(Vector(98.003, 19, -72.840), Value In Array(Global Variable(DuelZonePositionList), 3)),
+			To World);
+		Set Player Variable(Event Player, Spectating, Vector(-94.000, 11, -55.000));
+		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+	}
+}
+
+rule("ON: On Spectate Zone #5")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Event Player, Vector(-108.934, 5, -70.808)) <= 2;
+		Player Variable(Event Player, PlayerState) == 2;
+	}
+
+	actions
+	{
+		Abort If(Is In Air(Event Player));
+		Start Camera(Event Player, Vector(124.410, 15.910, -46.384), Add(Vector(124.410, 15.910, -46.384), Facing Direction Of(
+			Event Player)), 10);
+		Set Facing(Event Player, Direction Towards(Vector(124.410, 15.910, -46.384), Value In Array(Global Variable(DuelZonePositionList),
+			4)), To World);
+		Set Player Variable(Event Player, Spectating, Vector(-108.934, 5, -70.808));
+		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+	}
+}
+
+rule("ON: On Spectate Zone #6")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Event Player, Vector(-114.000, 5, -77.000)) <= 2;
+		Player Variable(Event Player, PlayerState) == 2;
+	}
+
+	actions
+	{
+		Abort If(Is In Air(Event Player));
+		Start Camera(Event Player, Vector(227.511, 36, -40.406), Add(Vector(227.511, 36, -40.406), Facing Direction Of(Event Player)), 10);
+		Set Facing(Event Player, Direction Towards(Vector(227.511, 36, -40.406), Value In Array(Global Variable(DuelZonePositionList), 5)),
+			To World);
+		Set Player Variable(Event Player, Spectating, Vector(-114.000, 5, -77.000));
+		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+	}
+}
+
+rule("ON: Finished Spectating")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Player Variable(Event Player, Spectating) != Null;
+		disabled Distance Between(Player Variable(Event Player, Spectating), Position Of(Event Player)) > 2;
+		Or(Compare(Distance Between(Player Variable(Event Player, Spectating), Position Of(Event Player)), >, 2), Is In Air(Event Player))
+			== True;
+	}
+
+	actions
+	{
+		Stop Camera(Event Player);
+		Set Player Variable(Event Player, Spectating, Null);
+	}
+}
+
+rule("ON: Entered AFK Room")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is In Spawn Room(Event Player) == False;
+		Player Variable(Event Player, PlayerState) == 2;
+		Distance Between(Vector(-90.622, 5.176, -61.049), Event Player) < 13;
+	}
+
+	actions
+	{
+		Small Message(Event Player, Custom String("AFK MODE ENABLED", Null, Null, Null));
+		Set Player Variable(Event Player, PlayerState, -4.000);
+		Set Status(Event Player, Null, Phased Out, 9999);
+	}
+}
+
+rule("ON: Exit AFK Room")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Player Variable(Event Player, PlayerState) == -4.000;
+		Is In Spawn Room(Event Player) == True;
+	}
+
+	actions
+	{
+		Small Message(Event Player, Custom String("AFK MODE DISABLED", Null, Null, Null));
+		Set Player Variable(Event Player, PlayerState, 2);
 	}
 }
