@@ -7,25 +7,17 @@ settings
 
 	lobby
 	{
-		Max FFA Players: 8
+		Allow Players Who Are In Queue: Yes
+		Match Voice Chat: Enabled
+		Return To Lobby: Never
 	}
 
 	modes
 	{
-		disabled Assault
-		{
-			Limit Roles: 2 Of Each Role Per Team
-		}
-
-		disabled Control
-		{
-			Limit Roles: 2 Of Each Role Per Team
-		}
-
 		Deathmatch
 		{
-			Hero Limit: Off
-			Score To Win: 20
+			Game Length In Minutes: 15
+			Score To Win: 50
 
 			enabled maps
 			{
@@ -33,14 +25,13 @@ settings
 			}
 		}
 
-		disabled Escort
+		General
 		{
-			Limit Roles: 2 Of Each Role Per Team
-		}
-
-		disabled Hybrid
-		{
-			Limit Roles: 2 Of Each Role Per Team
+			Allow Hero Switching: Off
+			Game Mode Start: Immediately
+			Hero Limit: Off
+			Respawn As Random Hero: On
+			Respawn Time Scalar: 0%
 		}
 	}
 
@@ -48,7 +39,12 @@ settings
 	{
 		General
 		{
-			Movement Gravity: 25%
+			Ability Cooldown Time: 50%
+			Movement Gravity: 50%
+			Movement Speed: 75%
+			Ultimate Generation: 250%
+			Ultimate Generation - Combat: 250%
+			Ultimate Generation - Passive: 250%
 		}
 	}
 }
@@ -62,6 +58,8 @@ variables
 		5: LowBounce
 		6: HighBounce
 		7: BallSize
+		8: PropulsionImpact
+		10: SecondaryFireWhitelist
 		25: DEBUG
 }
 
@@ -71,7 +69,7 @@ subroutines
 	1: BounceOnWall
 }
 
-rule("ENABLE ME FOR DEBUG")
+disabled rule("ENABLE ME FOR DEBUG")
 {
 	event
 	{
@@ -140,16 +138,35 @@ rule("Init Rules & UI")
 
 	actions
 	{
-		Disable Built-In Game Mode Scoring;
-		Create HUD Text(All Players(All Teams), Null, String("Game", Null, Null, Null), Null, Left, 0, White, Yellow, White,
-			Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, String("{0}: {1}", String("Jumping", Null, Null, Null), String("Faster", Null, Null,
-			Null), Null), Null, Left, 1, White, White, White, Visible To and String, Visible Never);
-		Create HUD Text(All Players(All Teams), Null, String("{0}: {1}", String("Primary Fire", Null, Null, Null), String("Flying", Null,
-			Null, Null), Null), Null, Left, 2, White, White, White, Visible To and String, Visible Never);
-		Set Global Variable(LowBounce, 12);
-		Set Global Variable(HighBounce, 15);
+		Disable Built-In Game Mode Completion;
+		Disable Built-In Game Mode Announcer;
+		Disable Built-In Game Mode Music;
+		Set Global Variable(LowBounce, 18);
+		Set Global Variable(HighBounce, 22);
 		Set Global Variable(BallSize, 2.500);
+		Set Global Variable(PropulsionImpact, 30);
+		Create HUD Text(All Players(All Teams), Null, Null, String("Game", Null, Null, Null), Left, 0, White, Yellow, Yellow,
+			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0}: {1}", String("Jumping", Null, Null, Null), String("Faster", Null,
+			Null, Null), Null), Left, 1, White, White, White, Visible To and String, Visible Never);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0}: {1}", String("Primary Fire", Null, Null, Null), String("Flying",
+			Null, Null, Null), Null), Left, 2, White, White, White, Visible To and String, Visible Never);
+		Set Global Variable(SecondaryFireWhitelist, Empty Array);
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Baptiste));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Genji));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Lúcio));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(McCree));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Mei));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Mercy));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Moira));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Pharah));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Mei));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Roadhog));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Soldier: 76));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Symmetra));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Torbjörn));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Zarya));
+		Modify Global Variable(SecondaryFireWhitelist, Append To Array, Hero(Zenyatta));
 	}
 }
 
@@ -302,9 +319,9 @@ rule("Bounce On Wall Subroutine (Set WallAngle Before Calling)")
 	actions
 	{
 		If(Is Button Held(Event Player, Jump));
-			Apply Impulse(Event Player, Global Variable(BounceAngle), 15, To World, Cancel Contrary Motion);
+			Apply Impulse(Event Player, Global Variable(BounceAngle), Global Variable(HighBounce), To World, Cancel Contrary Motion);
 		Else;
-			Apply Impulse(Event Player, Global Variable(BounceAngle), 12, To World, Cancel Contrary Motion);
+			Apply Impulse(Event Player, Global Variable(BounceAngle), Global Variable(LowBounce), To World, Cancel Contrary Motion);
 		End;
 		Play Effect(Event Player, Ring Explosion Sound, White, Event Player, 50);
 		Wait(1, Abort When False);
@@ -323,14 +340,17 @@ rule("Shooting Propulsion")
 
 	conditions
 	{
-		Is Firing Primary(Event Player) == True;
+		disabled Is Firing Primary(Event Player) == True;
+		Or(Is Firing Primary(Event Player), And(Is Firing Secondary(Event Player), Array Contains(Global Variable(SecondaryFireWhitelist),
+			Hero Of(Event Player)))) == True;
 	}
 
 	actions
 	{
-		Apply Impulse(Event Player, Multiply(Facing Direction Of(Event Player), -1.000), 5, To World, Incorporate Contrary Motion);
+		Apply Impulse(Event Player, Multiply(Facing Direction Of(Event Player), -1.000), Global Variable(PropulsionImpact), To World,
+			Incorporate Contrary Motion);
 		disabled Small Message(Event Player, Custom String("BANG", Null, Null, Null));
-		Wait(0.200, Ignore Condition);
+		Wait(0.150, Ignore Condition);
 		"Loop if the user is still firing, it might be an automatic weapon"
 		Loop If Condition Is True;
 	}
@@ -346,22 +366,38 @@ rule("Init Balls")
 	actions
 	{
 		Set Global Variable(Balls, Empty Array);
-		For Global Variable(I, 0, 6, 1);
-			Modify Global Variable(Balls, Append To Array, Vector(Add(Multiply(5, Global Variable(I)), -15.000), 15, Add(Multiply(5,
-				Global Variable(I)), -15.000)));
+		For Global Variable(PropulsionImpact, 0, 7, 1);
+			Modify Global Variable(Balls, Append To Array, Vector(Add(Multiply(5, Global Variable(PropulsionImpact)), -15.000), 15, Add(
+				Multiply(5, Global Variable(PropulsionImpact)), -15.000)));
 		End;
-		Create Effect(All Players(All Teams), Sphere, Blue, Value In Array(Global Variable(Balls), 0), Global Variable(BallSize),
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 0), Global Variable(BallSize),
 			Visible To Position and Radius);
 		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 1), Global Variable(BallSize),
 			Visible To Position and Radius);
 		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 2), Global Variable(BallSize),
 			Visible To Position and Radius);
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 3), Global Variable(BallSize),
-			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Blue, Value In Array(Global Variable(Balls), 3), Multiply(Global Variable(BallSize),
+			0.500), Visible To Position and Radius);
 		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 4), Global Variable(BallSize),
 			Visible To Position and Radius);
 		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 5), Global Variable(BallSize),
 			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 6), Global Variable(BallSize),
+			Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), Custom String("+3", Null, Null, Null), Add(Vector(0, -0.750, 0), Value In Array(
+			Global Variable(Balls), 0)), 1, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("+3", Null, Null, Null), Add(Vector(0, -0.750, 0), Value In Array(
+			Global Variable(Balls), 1)), 1, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("+3", Null, Null, Null), Add(Vector(0, -0.750, 0), Value In Array(
+			Global Variable(Balls), 2)), 1, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("+5", Null, Null, Null), Add(Vector(0, -0.750, 0), Value In Array(
+			Global Variable(Balls), 3)), 1, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("+3", Null, Null, Null), Add(Vector(0, -0.750, 0), Value In Array(
+			Global Variable(Balls), 4)), 1, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("+3", Null, Null, Null), Add(Vector(0, -0.750, 0), Value In Array(
+			Global Variable(Balls), 5)), 1, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("+3", Null, Null, Null), Add(Vector(0, -0.750, 0), Value In Array(
+			Global Variable(Balls), 6)), 1, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
 	}
 }
 
@@ -375,13 +411,13 @@ rule("Ball Collision Subroutine (Set IndexOfBall Before Calling)")
 
 	actions
 	{
-		If(Compare(Global Variable(IndexOfBall), ==, 0));
-			Modify Player Score(Event Player, 3);
+		If(Compare(Global Variable(IndexOfBall), ==, 3));
+			Modify Player Score(Event Player, 5);
 		Else;
-			Modify Player Score(Event Player, 1);
+			Modify Player Score(Event Player, 3);
 		End;
-		Set Global Variable At Index(Balls, Global Variable(IndexOfBall), Vector(Random Real(-15.000, 15), Random Real(10, 30),
-			Random Real(-15.000, 15)));
+		Set Global Variable At Index(Balls, Global Variable(IndexOfBall), Vector(Random Real(-15.000, 15), Random Real(7, 30), Random Real(
+			-15.000, 15)));
 		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 75);
 	}
 }
@@ -460,7 +496,8 @@ rule("Collided With Ball #3")
 
 	conditions
 	{
-		Distance Between(Value In Array(Global Variable(Balls), 3), Position Of(Event Player)) <= Global Variable(BallSize);
+		Distance Between(Value In Array(Global Variable(Balls), 3), Position Of(Event Player)) <= Multiply(Global Variable(BallSize),
+			0.500);
 	}
 
 	actions
@@ -509,5 +546,61 @@ rule("Collided With Ball #5")
 	{
 		Set Global Variable(IndexOfBall, 5);
 		Call Subroutine(BallCollided);
+	}
+}
+
+rule("Collided With Ball #6")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Value In Array(Global Variable(Balls), 6), Position Of(Event Player)) <= Global Variable(BallSize);
+	}
+
+	actions
+	{
+		Set Global Variable(IndexOfBall, 6);
+		Call Subroutine(BallCollided);
+	}
+}
+
+rule("Player Reaches 200 Score")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Score Of(Event Player) >= 200;
+	}
+
+	actions
+	{
+		Declare Player Victory(Event Player);
+	}
+}
+
+rule("Heal on Kill")
+{
+	event
+	{
+		Player Dealt Final Blow;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Heal(Event Player, Null, 1000);
 	}
 }
