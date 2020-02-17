@@ -1,0 +1,283 @@
+settings
+{
+	main
+	{
+		Description: "Space Balls - By Giacomand"
+	}
+
+	lobby
+	{
+		Max FFA Players: 8
+	}
+
+	modes
+	{
+		disabled Assault
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Control
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		Deathmatch
+		{
+			Hero Limit: Off
+			Score To Win: 20
+
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		disabled Escort
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Hybrid
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Movement Gravity: 25%
+		}
+	}
+}
+
+variables
+{
+	global:
+		1: Balls
+		2: IndexOfBall
+		3: BounceAngle
+}
+
+subroutines
+{
+	0: BallCollided
+	1: BounceOnWall
+}
+
+rule("DEBUG: Teleport")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Add(Position Of(Event Player), Multiply(Facing Direction Of(Event Player), 10)));
+		Apply Impulse(Event Player, Vector(0, 1, 0), 1, To World, Cancel Contrary Motion);
+	}
+}
+
+rule("DEBUG: Debug UI")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Position Of(Event Player), Null, Null, Left, 0, Purple, Purple, Purple, Visible To and String,
+			Visible Never);
+		Create HUD Text(Event Player, Facing Direction Of(Event Player), Null, Null, Left, 0, Purple, Purple, Purple,
+			Visible To and String, Visible Never);
+		Create HUD Text(Event Player, Horizontal Speed Of(Event Player), Null, Null, Left, 0, Purple, Purple, Purple,
+			Visible To and String, Visible Never);
+	}
+}
+
+rule("Bounce Ground")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Y Component Of(Position Of(Event Player)) <= 5;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Global Variable(BounceAngle, Vector(0, 1, 0));
+		Call Subroutine(BounceOnWall);
+	}
+}
+
+rule("Bounce Ceiling")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Y Component Of(Position Of(Event Player)) > 35;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Global Variable(BounceAngle, Vector(0, -1.000, 0));
+		Call Subroutine(BounceOnWall);
+	}
+}
+
+rule("Bounce Wall #1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		X Component Of(Position Of(Event Player)) >= 19;
+	}
+
+	actions
+	{
+		Set Global Variable(BounceAngle, Vector(-1.000, 0, 0));
+		Call Subroutine(BounceOnWall);
+	}
+}
+
+rule("Bounce On Wall Subroutine (Set WallAngle Before Calling)")
+{
+	event
+	{
+		Subroutine;
+		BounceOnWall;
+	}
+
+	actions
+	{
+		If(Is Button Held(Event Player, Jump));
+			Apply Impulse(Event Player, Global Variable(BounceAngle), 15, To World, Cancel Contrary Motion);
+		Else;
+			Apply Impulse(Event Player, Global Variable(BounceAngle), 10, To World, Cancel Contrary Motion);
+		End;
+		Play Effect(Event Player, Ring Explosion Sound, White, Event Player, 50);
+		Wait(1, Abort When False);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Shooting Propulsion")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		Apply Impulse(Event Player, Multiply(Facing Direction Of(Event Player), -1.000), 5, To World, Incorporate Contrary Motion);
+		disabled Small Message(Event Player, Custom String("BANG", Null, Null, Null));
+		Wait(0.200, Ignore Condition);
+		"Loop if the user is still firing, it might be an automatic weapon"
+		Loop If Condition Is True;
+	}
+}
+
+rule("Init Balls")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Global Variable(Balls, Empty Array);
+		For Global Variable(I, 0, 6, 1);
+			Modify Global Variable(Balls, Append To Array, Vector(0, 10, 0));
+		End;
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 0), 1, Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 1), 1, Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 2), 1, Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 3), 1, Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 4), 1, Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 5), 1, Visible To Position and Radius);
+	}
+}
+
+rule("Ball Collision Subroutine (Set IndexOfBall Before Calling)")
+{
+	event
+	{
+		Subroutine;
+		BallCollided;
+	}
+
+	actions
+	{
+		Modify Player Score(Event Player, 1);
+		Set Global Variable At Index(Balls, Global Variable(IndexOfBall), Vector(Random Real(-15.000, 15), Random Real(10, 30),
+			Random Real(-15.000, 15)));
+		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 75);
+	}
+}
+
+rule("Collided With Ball #0")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Value In Array(Global Variable(Balls), 0), Position Of(Event Player)) <= 2;
+	}
+
+	actions
+	{
+		Set Global Variable(IndexOfBall, 0);
+		Call Subroutine(BallCollided);
+	}
+}
