@@ -59,12 +59,29 @@ variables
 		1: Balls
 		2: IndexOfBall
 		3: BounceAngle
+		5: LowBounce
+		6: HighBounce
+		7: BallSize
+		25: DEBUG
 }
 
 subroutines
 {
 	0: BallCollided
 	1: BounceOnWall
+}
+
+rule("ENABLE ME FOR DEBUG")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Global Variable(DEBUG, True);
+	}
 }
 
 rule("DEBUG: Teleport")
@@ -79,6 +96,7 @@ rule("DEBUG: Teleport")
 	conditions
 	{
 		Is Button Held(Event Player, Interact) == True;
+		Global Variable(DEBUG) == True;
 	}
 
 	actions
@@ -97,6 +115,11 @@ rule("DEBUG: Debug UI")
 		All;
 	}
 
+	conditions
+	{
+		Global Variable(DEBUG) == True;
+	}
+
 	actions
 	{
 		Create HUD Text(Event Player, Position Of(Event Player), Null, Null, Left, 0, Purple, Purple, Purple, Visible To and String,
@@ -105,6 +128,28 @@ rule("DEBUG: Debug UI")
 			Visible To and String, Visible Never);
 		Create HUD Text(Event Player, Horizontal Speed Of(Event Player), Null, Null, Left, 0, Purple, Purple, Purple,
 			Visible To and String, Visible Never);
+	}
+}
+
+rule("Init Rules & UI")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Built-In Game Mode Scoring;
+		Create HUD Text(All Players(All Teams), Null, String("Game", Null, Null, Null), Null, Left, 0, White, Yellow, White,
+			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0}: {1}", String("Jumping", Null, Null, Null), String("Faster", Null, Null,
+			Null), Null), Null, Left, 1, White, White, White, Visible To and String, Visible Never);
+		Create HUD Text(All Players(All Teams), Null, String("{0}: {1}", String("Primary Fire", Null, Null, Null), String("Flying", Null,
+			Null, Null), Null), Null, Left, 2, White, White, White, Visible To and String, Visible Never);
+		Set Global Variable(LowBounce, 12);
+		Set Global Variable(HighBounce, 15);
+		Set Global Variable(BallSize, 2.500);
 	}
 }
 
@@ -142,7 +187,7 @@ rule("Bounce Ceiling")
 
 	conditions
 	{
-		Y Component Of(Position Of(Event Player)) > 35;
+		Y Component Of(Position Of(Event Player)) >= 33;
 		Has Spawned(Event Player) == True;
 		Is Alive(Event Player) == True;
 	}
@@ -177,6 +222,75 @@ rule("Bounce Wall #1")
 	}
 }
 
+rule("Bounce Wall #2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		X Component Of(Position Of(Event Player)) <= -19.000;
+	}
+
+	actions
+	{
+		Set Global Variable(BounceAngle, Vector(1, 0, 0));
+		Call Subroutine(BounceOnWall);
+	}
+}
+
+rule("Bounce Wall #3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Z Component Of(Position Of(Event Player)) >= 19;
+	}
+
+	actions
+	{
+		Set Global Variable(BounceAngle, Vector(0, 0, -1.000));
+		Call Subroutine(BounceOnWall);
+	}
+}
+
+rule("Bounce Wall #4")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Z Component Of(Position Of(Event Player)) <= -19.000;
+	}
+
+	actions
+	{
+		Set Global Variable(BounceAngle, Vector(0, 0, 1));
+		Call Subroutine(BounceOnWall);
+	}
+}
+
 rule("Bounce On Wall Subroutine (Set WallAngle Before Calling)")
 {
 	event
@@ -190,7 +304,7 @@ rule("Bounce On Wall Subroutine (Set WallAngle Before Calling)")
 		If(Is Button Held(Event Player, Jump));
 			Apply Impulse(Event Player, Global Variable(BounceAngle), 15, To World, Cancel Contrary Motion);
 		Else;
-			Apply Impulse(Event Player, Global Variable(BounceAngle), 10, To World, Cancel Contrary Motion);
+			Apply Impulse(Event Player, Global Variable(BounceAngle), 12, To World, Cancel Contrary Motion);
 		End;
 		Play Effect(Event Player, Ring Explosion Sound, White, Event Player, 50);
 		Wait(1, Abort When False);
@@ -233,14 +347,21 @@ rule("Init Balls")
 	{
 		Set Global Variable(Balls, Empty Array);
 		For Global Variable(I, 0, 6, 1);
-			Modify Global Variable(Balls, Append To Array, Vector(0, 10, 0));
+			Modify Global Variable(Balls, Append To Array, Vector(Add(Multiply(5, Global Variable(I)), -15.000), 15, Add(Multiply(5,
+				Global Variable(I)), -15.000)));
 		End;
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 0), 1, Visible To Position and Radius);
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 1), 1, Visible To Position and Radius);
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 2), 1, Visible To Position and Radius);
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 3), 1, Visible To Position and Radius);
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 4), 1, Visible To Position and Radius);
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 5), 1, Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Blue, Value In Array(Global Variable(Balls), 0), Global Variable(BallSize),
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 1), Global Variable(BallSize),
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 2), Global Variable(BallSize),
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 3), Global Variable(BallSize),
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 4), Global Variable(BallSize),
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(Balls), 5), Global Variable(BallSize),
+			Visible To Position and Radius);
 	}
 }
 
@@ -254,7 +375,11 @@ rule("Ball Collision Subroutine (Set IndexOfBall Before Calling)")
 
 	actions
 	{
-		Modify Player Score(Event Player, 1);
+		If(Compare(Global Variable(IndexOfBall), ==, 0));
+			Modify Player Score(Event Player, 3);
+		Else;
+			Modify Player Score(Event Player, 1);
+		End;
 		Set Global Variable At Index(Balls, Global Variable(IndexOfBall), Vector(Random Real(-15.000, 15), Random Real(10, 30),
 			Random Real(-15.000, 15)));
 		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 75);
@@ -272,12 +397,117 @@ rule("Collided With Ball #0")
 
 	conditions
 	{
-		Distance Between(Value In Array(Global Variable(Balls), 0), Position Of(Event Player)) <= 2;
+		Distance Between(Value In Array(Global Variable(Balls), 0), Position Of(Event Player)) <= Global Variable(BallSize);
 	}
 
 	actions
 	{
 		Set Global Variable(IndexOfBall, 0);
+		Call Subroutine(BallCollided);
+	}
+}
+
+rule("Collided With Ball #1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Value In Array(Global Variable(Balls), 1), Position Of(Event Player)) <= Global Variable(BallSize);
+	}
+
+	actions
+	{
+		Set Global Variable(IndexOfBall, 1);
+		Call Subroutine(BallCollided);
+	}
+}
+
+rule("Collided With Ball #2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Value In Array(Global Variable(Balls), 2), Position Of(Event Player)) <= Global Variable(BallSize);
+	}
+
+	actions
+	{
+		Set Global Variable(IndexOfBall, 2);
+		Call Subroutine(BallCollided);
+	}
+}
+
+rule("Collided With Ball #3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Value In Array(Global Variable(Balls), 3), Position Of(Event Player)) <= Global Variable(BallSize);
+	}
+
+	actions
+	{
+		Set Global Variable(IndexOfBall, 3);
+		Call Subroutine(BallCollided);
+	}
+}
+
+rule("Collided With Ball #4")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Value In Array(Global Variable(Balls), 4), Position Of(Event Player)) <= Global Variable(BallSize);
+	}
+
+	actions
+	{
+		Set Global Variable(IndexOfBall, 4);
+		Call Subroutine(BallCollided);
+	}
+}
+
+rule("Collided With Ball #5")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Distance Between(Value In Array(Global Variable(Balls), 5), Position Of(Event Player)) <= Global Variable(BallSize);
+	}
+
+	actions
+	{
+		Set Global Variable(IndexOfBall, 5);
 		Call Subroutine(BallCollided);
 	}
 }
