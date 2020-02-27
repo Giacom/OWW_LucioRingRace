@@ -76,6 +76,7 @@ variables
 {
 	player:
 		0: LastCreatedSpeedometerID
+		1: Timer
 }
 
 rule("Crouch = Reset")
@@ -95,6 +96,27 @@ rule("Crouch = Reset")
 	actions
 	{
 		Respawn(Event Player);
+		Set Player Variable(Event Player, Timer, 0);
+		Chase Player Variable At Rate(Event Player, Timer, 9999, 1, None);
+	}
+}
+
+rule("Player Init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
+			White, Green, Visible To and String, Default Visibility);
+		Set Player Variable(Event Player, LastCreatedSpeedometerID, Last Text ID);
+		Create HUD Text(Event Player, Null, Null, String("{0} sec", Player Variable(Event Player, Timer), Null, Null), Left, -100.000,
+			White, White, White, Visible To and String, Default Visibility);
 	}
 }
 
@@ -194,5 +216,26 @@ rule("ON: Speedometer (Fast)")
 		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
 			White, Green, Visible To and String, Default Visibility);
 		Set Player Variable(Event Player, LastCreatedSpeedometerID, Last Text ID);
+	}
+}
+
+rule("ON: Touching point")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is On Objective(Event Player) == True;
+	}
+
+	actions
+	{
+		Stop Chasing Player Variable(Event Player, Timer);
+		disabled Big Message(Event Player, String("{0} sec", Player Variable(Event Player, Timer), Null, Null));
 	}
 }
