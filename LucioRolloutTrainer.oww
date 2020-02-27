@@ -1,0 +1,198 @@
+settings
+{
+	main
+	{
+		Description: "Lucio Spawn Rollout Trainer - Instructions: Use Interact (F) to progress the objective to get the next spawn, use Interact (F) again to stop the bot from capturing the point. You can press Crouch to respawn yourself."
+	}
+
+	lobby
+	{
+		Max Team 1 Players: 1
+		Max Team 2 Players: 1
+	}
+
+	modes
+	{
+		Assault
+		{
+			Capture Speed Modifier: 500%
+
+			enabled maps
+			{
+				Temple of Anubis
+			}
+		}
+
+		Control
+		{
+			Capture Speed Modifier: 500%
+			Scoring Speed Modifier: 500%
+
+			enabled maps
+			{
+			}
+		}
+
+		Escort
+		{
+			Payload Speed Modifier: 500%
+
+			enabled maps
+			{
+			}
+		}
+
+		Hybrid
+		{
+			Capture Speed Modifier: 500%
+			Payload Speed Modifier: 500%
+
+			enabled maps
+			{
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Immediately
+			Hero Limit: Off
+			Respawn Time Scalar: 0%
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			enabled heroes
+			{
+				Lúcio
+			}
+		}
+	}
+}
+
+variables
+{
+	player:
+		0: LastCreatedSpeedometerID
+}
+
+rule("Crouch = Reset")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Crouch) == True;
+	}
+
+	actions
+	{
+		Respawn(Event Player);
+	}
+}
+
+rule("Init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Assembling Heroes == True;
+	}
+
+	actions
+	{
+		Set Match Time(1);
+		Wait(5, Ignore Condition);
+		Set Match Time(1);
+		Wait(5, Ignore Condition);
+		Set Match Time(3599);
+		Wait(1, Ignore Condition);
+		Create Dummy Bot(Hero(Lúcio), Opposite Team Of(Team Of(Host Player)), -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Pause Match Time;
+		Set Objective Description(All Players(All Teams), Custom String("", Null, Null, Null), Visible To and String);
+	}
+}
+
+rule("F = Next Point")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Set Global Variable(P, Payload Position);
+		Skip If(Is On Objective(Players In Slot(0, Opposite Team Of(Team Of(Host Player)))), 5);
+		Skip If(Compare(Payload Position, ==, Null), 2);
+		Teleport(All Living Players(Opposite Team Of(Team Of(Event Player))), Add(Payload Position, Vector(0, 1.500, 0)));
+		Skip(1);
+		Teleport(All Living Players(Opposite Team Of(Team Of(Event Player))), Objective Position(Objective Index));
+		Skip(1);
+		Kill(Players In Slot(0, Opposite Team Of(Team Of(Host Player))), Null);
+	}
+}
+
+rule("ON: Speedometer (Slow)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Horizontal Speed Of(Event Player) <= 12;
+	}
+
+	actions
+	{
+		Destroy HUD Text(Player Variable(Event Player, LastCreatedSpeedometerID));
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
+			White, Yellow, Visible To and String, Default Visibility);
+		Set Player Variable(Event Player, LastCreatedSpeedometerID, Last Text ID);
+	}
+}
+
+rule("ON: Speedometer (Fast)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Horizontal Speed Of(Event Player) > 12;
+	}
+
+	actions
+	{
+		Destroy HUD Text(Player Variable(Event Player, LastCreatedSpeedometerID));
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
+			White, Green, Visible To and String, Default Visibility);
+		Set Player Variable(Event Player, LastCreatedSpeedometerID, Last Text ID);
+	}
+}
