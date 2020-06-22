@@ -39,7 +39,7 @@ variables
 		14: Spectating
 }
 
-rule("DEBUG: Enable this for Debug Mode")
+disabled rule("DEBUG: Enable this for Debug Mode")
 {
 	event
 	{
