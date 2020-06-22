@@ -33,7 +33,6 @@ variables
 		6: MatchScore
 		7: TempOpponent
 		8: TimeSpentWaiting
-		9: TempHeroWasOn
 		11: LastOpponent
 		12: RepeatedOpponentCounter
 		13: CurrentOpponent
@@ -49,7 +48,25 @@ disabled rule("DEBUG: Enable this for Debug Mode")
 
 	actions
 	{
-		Set Global Variable(DEBUG, True);
+		Global.DEBUG = True;
+	}
+}
+
+rule("DEBUG: Is Not Enabled")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.DEBUG == False;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
 	}
 }
 
@@ -64,7 +81,7 @@ rule("DEBUG: Init Player Debug")
 
 	conditions
 	{
-		Global Variable(DEBUG) == True;
+		Global.DEBUG == True;
 	}
 
 	actions
@@ -85,32 +102,54 @@ rule("DEBUG: Init Global Debug")
 
 	conditions
 	{
-		Global Variable(DEBUG) == True;
+		Global.DEBUG == True;
 	}
 
 	actions
 	{
-		disabled Create HUD Text(All Players(All Teams), Null, Null, Custom String("DEBUG INFO", Null, Null, Null), Left, -1.000, White, White, Red,
+		disabled Create HUD Text(All Players(All Teams), Null, Null, Custom String("DEBUG INFO"), Left, -1, White, White, Red,
 			Visible To and String, Default Visibility);
-		disabled Create HUD Text(All Players(All Teams), Null, Global Variable(DEBUG_ZonePosition), Null, Left, 0, White, White, White,
-			Visible To and String, Default Visibility);
-		disabled Create HUD Text(All Players(All Teams), Null, Global Variable(DEBUG_ZoneRadius), Null, Left, 0, White, White, White,
-			Visible To and String, Default Visibility);
-		disabled Create Effect(All Players(All Teams), Sphere, Red, Global Variable(DEBUG_ZonePosition), Global Variable(DEBUG_ZoneRadius),
+		disabled Create HUD Text(All Players(All Teams), Null, Global.DEBUG_ZonePosition, Null, Left, 0, White, White, White, Visible To and String,
+			Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), Null, Global.DEBUG_ZoneRadius, Null, Left, 0, White, White, White, Visible To and String,
+			Default Visibility);
+		disabled Create Effect(All Players(All Teams), Sphere, Red, Global.DEBUG_ZonePosition, Global.DEBUG_ZoneRadius,
 			Visible To Position and Radius);
 		disabled Abort;
 		Wait(4, Ignore Condition);
-		Create Dummy Bot(Hero(McCree), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Ashe), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Baptiste), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Genji), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Hanzo), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Junkrat), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Tracer), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Doomfist), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Bastion), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Lúcio), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Zenyatta), All Teams, -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(McCree), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ashe), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Baptiste), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Genji), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Hanzo), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Junkrat), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Doomfist), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Bastion), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Lúcio), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Zenyatta), All Teams, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("DEBUG: Not invulnerable in spawn")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.DEBUG == True;
+		(Event Player.PlayerState == 2 || Event Player.PlayerState == -4) == True;
+		Has Status(Event Player, Phased Out) == False;
+	}
+
+	actions
+	{
+		Big Message(All Players(All Teams), Custom String("DEBUG: {0} NOT PHASED OUT", Event Player));
 	}
 }
 
@@ -125,14 +164,14 @@ disabled rule("DEBUG: Set Map Duel Zone Position")
 
 	conditions
 	{
-		Global Variable(DEBUG) == True;
+		Global.DEBUG == True;
 		Is Button Held(Event Player, Primary Fire) == True;
 	}
 
 	actions
 	{
-		Set Global Variable(DEBUG_ZonePosition, Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(Facing Direction Of(
-			Event Player), 1000), Eye Position(Event Player)), All Players(All Teams), Event Player, True));
+		Global.DEBUG_ZonePosition = Ray Cast Hit Position(Eye Position(Event Player), Facing Direction Of(Event Player)
+			* 1000 + Eye Position(Event Player), All Players(All Teams), Event Player, True);
 	}
 }
 
@@ -147,16 +186,16 @@ disabled rule("DEBUG: Set Duel Zone Radius")
 
 	conditions
 	{
-		Global Variable(DEBUG) == True;
-		Or(Is Button Held(Event Player, Jump), Is Button Held(Event Player, Crouch)) == True;
+		Global.DEBUG == True;
+		(Is Button Held(Event Player, Jump) || Is Button Held(Event Player, Crouch)) == True;
 	}
 
 	actions
 	{
 		Skip If(Is Button Held(Event Player, Jump), 2);
-		Modify Global Variable(DEBUG_ZoneRadius, Add, 5);
+		Global.DEBUG_ZoneRadius += 5;
 		Abort;
-		Modify Global Variable(DEBUG_ZoneRadius, Subtract, 5);
+		Global.DEBUG_ZoneRadius -= 5;
 	}
 }
 
@@ -171,13 +210,36 @@ rule("DEBUG: Kill Player #2")
 
 	conditions
 	{
-		Global Variable(DEBUG) == True;
+		Global.DEBUG == True;
 		Is Communicating(Event Player, Hello) == True;
 	}
 
 	actions
 	{
 		Kill(Players In Slot(1, All Teams), Null);
+	}
+}
+
+rule("DEBUG: Destroy Dummy Player #2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.DEBUG == True;
+		Is Communicating(Event Player, Thanks) == True;
+	}
+
+	actions
+	{
+		Destroy Dummy Bot(All Teams, 1);
+		Wait(5, Ignore Condition);
+		Create Dummy Bot(Hero(McCree), All Teams, 1, Vector(0, 0, 0), Vector(0, 0, 0));
 	}
 }
 
@@ -192,15 +254,15 @@ rule("DEBUG: No Clip")
 
 	conditions
 	{
-		Global Variable(DEBUG) == True;
+		Global.DEBUG == True;
 		Is Button Held(Event Player, Interact) == True;
 	}
 
 	actions
 	{
-		Set Global Variable(DEBUG_TempFacingDir, Facing Direction Of(Event Player));
-		Teleport(Event Player, Add(Multiply(Facing Direction Of(Event Player), 10), Eye Position(Event Player)));
-		Set Facing(Event Player, Global Variable(DEBUG_TempFacingDir), To World);
+		Global.DEBUG_TempFacingDir = Facing Direction Of(Event Player);
+		Teleport(Event Player, Facing Direction Of(Event Player) * 10 + Eye Position(Event Player));
+		Set Facing(Event Player, Global.DEBUG_TempFacingDir, To World);
 		Apply Impulse(Event Player, Vector(0, 1, 0), 5, To World, Cancel Contrary Motion);
 	}
 }
@@ -219,13 +281,13 @@ rule("MAP: Havana")
 
 	actions
 	{
-		Set Global Variable(LobbyPosition, Vector(-102.513, 6, -73.331));
-		Set Global Variable(LobbySignPosition, Vector(-94.040, 6.556, -69.077));
-		Set Global Variable(DuelZonePositionList, Empty Array);
-		Set Global Variable(DuelZoneRadiusList, Empty Array);
-		Set Global Variable(DuelZoneSpawnList, Empty Array);
-		Set Global Variable(BarrierPositionList, Empty Array);
-		Set Global Variable(BarrierRadiusList, Empty Array);
+		Global.LobbyPosition = Vector(-102.513, 6, -73.331);
+		Global.LobbySignPosition = Vector(-94.040, 6.556, -69.077);
+		Global.DuelZonePositionList = Empty Array;
+		Global.DuelZoneRadiusList = Empty Array;
+		Global.DuelZoneSpawnList = Empty Array;
+		Global.BarrierPositionList = Empty Array;
+		Global.BarrierRadiusList = Empty Array;
 		Modify Global Variable(DuelZonePositionList, Append To Array, Vector(-96.249, 4, -68.923));
 		Modify Global Variable(DuelZoneRadiusList, Append To Array, 35);
 		Modify Global Variable(DuelZoneSpawnList, Append To Array, Vector(-108.678, 5.199, -53.831));
@@ -266,8 +328,8 @@ rule("CONFIG: Setup Config (ConfigScoreToWin is broken atm)")
 
 	actions
 	{
-		Set Global Variable(ConfigScoreToWin, 3);
-		Set Global Variable(ConfigMatchmakerTimer, 15);
+		Global.ConfigScoreToWin = 3;
+		Global.ConfigMatchmakerTimer = 15;
 	}
 }
 
@@ -313,7 +375,7 @@ rule("INIT: Setup Random 5 * 6 Sized Hero Pool")
 
 	actions
 	{
-		Set Global Variable(HeroPoolArray, Empty Array);
+		Global.HeroPoolArray = Empty Array;
 		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
 		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
 		Modify Global Variable(HeroPoolArray, Append To Array, Hero(Brigitte));
@@ -356,32 +418,30 @@ rule("INIT: Global HUD and Signs")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Null, Custom String("Giacomand's Duel Zones", Null, Null, Null), Custom String(
-			"Server Load - {0}% - {1}% avg - {2}% peak", Server Load, Server Load Average, Server Load Peak), Left, -10.000, White, Yellow,
+		Create HUD Text(All Players(All Teams), Null, Custom String("Giacomand's Duel Zones"), Custom String(
+			"Server Load - {0}% - {1}% avg - {2}% peak", Server Load, Server Load Average, Server Load Peak), Left, -10, White, Yellow,
 			White, Visible To and String, Default Visibility);
-		disabled Create HUD Text(All Players(All Teams), Null, Null, Custom String("Score to win is {0}", Global Variable(ConfigScoreToWin), Null,
-			Null), Right, 0, White, White, White, Visible To and String, Default Visibility);
-		disabled Create HUD Text(All Players(All Teams), Null, Null, Custom String("Matchmaker Timer is {0} sec(s)", Global Variable(
-			ConfigMatchmakerTimer), Null, Null), Right, 0, White, White, White, Visible To and String, Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), Null, Null, Custom String("Score to win is {0}", Global.ConfigScoreToWin), Right, 0, White,
+			White, White, Visible To and String, Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), Null, Null, Custom String("Matchmaker Timer is {0} sec(s)", Global.ConfigMatchmakerTimer),
+			Right, 0, White, White, White, Visible To and String, Default Visibility);
 		disabled Create HUD Text(All Players(All Teams), Null, Custom String("Server Load - {0}% - {1}% avg - {2}% peak", Server Load,
 			Server Load Average, Server Load Peak), Null, Right, 1, White, White, White, Visible To and String, Default Visibility);
-		disabled Create HUD Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, PlayerState), ==, 2)), Null,
-			Null, Custom String("Searching for opponent..", Null, Null, Null), Left, -1.000, White, White, White, Visible To and String,
+		disabled Create HUD Text(Filtered Array(All Players(All Teams), Current Array Element.PlayerState == 2), Null, Null, Custom String(
+			"Searching for opponent.."), Left, -1, White, White, White, Visible To and String, Default Visibility);
+		disabled Create HUD Text(Filtered Array(All Players(All Teams), Current Array Element.PlayerState == 2), Null, Null, Custom String(
+			"Matches will be created in {0} sec(s)", Global.MatchmakerTicker), Left, 0, White, White, White, Visible To and String,
 			Default Visibility);
-		disabled Create HUD Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, PlayerState), ==, 2)), Null,
-			Null, Custom String("Matches will be created in {0} sec(s)", Global Variable(MatchmakerTicker), Null, Null), Left, 0, White,
-			White, White, Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, String("", Null, Null, Null), String("----------", Null, Null, Null), Left, 0, White,
-			Yellow, White, Visible To and String, Default Visibility);
-		Create In-World Text(All Players(All Teams), Custom String("Waiting Room", Null, Null, Null), Add(Global Variable(
-			LobbySignPosition), Vector(0, 2, 0)), 2, Clip Against Surfaces, Visible To and String, Yellow, Default Visibility);
-		Create In-World Text(All Players(All Teams), Custom String("Score to win is {0}", Global Variable(ConfigScoreToWin), Null, Null),
-			Add(Global Variable(LobbySignPosition), Vector(0, 1.500, 0)), 1.500, Clip Against Surfaces, Visible To and String, White,
+		Create HUD Text(All Players(All Teams), Null, String(""), String("----------"), Left, 0, White, Yellow, White,
+			Visible To and String, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Waiting Room"), Global.LobbySignPosition + Vector(0, 2, 0), 2,
+			Clip Against Surfaces, Visible To and String, Yellow, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Score to win is {0}", Global.ConfigScoreToWin),
+			Global.LobbySignPosition + Vector(0, 1.500, 0), 1.500, Clip Against Surfaces, Visible To and String, White,
 			Default Visibility);
-		Create In-World Text(All Players(All Teams), Custom String("Matches will be created in {0} sec(s)..", Global Variable(
-			MatchmakerTicker), Null, Null), Add(Global Variable(LobbySignPosition), Vector(0, 1, 0)), 1.500, Clip Against Surfaces,
-			Visible To and String, White, Default Visibility);
-		Create In-World Text(All Players(All Teams), Custom String("AFK ROOM", Null, Null, Null), Vector(-92.680, 5.500, -63.203), 1.500,
+		Create In-World Text(All Players(All Teams), Custom String("Matches will be created in {0} sec(s)..", Global.MatchmakerTicker),
+			Global.LobbySignPosition + Vector(0, 1, 0), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("AFK ROOM"), Vector(-92.680, 5.500, -63.203), 1.500,
 			Clip Against Surfaces, Visible To and String, White, Default Visibility);
 	}
 }
@@ -397,29 +457,26 @@ rule("INIT: Player HUD")
 
 	actions
 	{
-		disabled Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), Hero Icon String(
-			Hero Of(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone), ==, Player Variable(
-			Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))))), Filtered Array(All Players(
-			All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone), ==, Player Variable(Current Array Element,
-			ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), String("{0} - {1}", Player Variable(Event Player,
-			MatchScore), Player Variable(Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player, ActiveDuelZone),
-			==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=, Current Array Element))), MatchScore),
-			Null), Left, 1, Team 2, Team 2, White, Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(Event Player, Compare(Player Variable(Current Array Element, PlayerState), >, 2)), Hero Icon String(
-			Value In Array(Global Variable(HeroPoolArray), Add(Multiply(5, Player Variable(Event Player, ActiveDuelZone)), Add(0,
-			Player Variable(Player Variable(Event Player, CurrentOpponent), MatchLosses))))), Player Variable(Event Player,
-			CurrentOpponent), String("{0} - {1}", Player Variable(Event Player, MatchScore), Player Variable(Player Variable(Event Player,
-			CurrentOpponent), MatchScore), Null), Left, 1, Team 2, Team 2, White, Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(Event Player, And(Compare(Player Variable(Current Array Element, PlayerState), >, 2), Compare(
-			Player Variable(Player Variable(Event Player, CurrentOpponent), MatchLosses), <, 2))), Hero Icon String(Value In Array(
-			Global Variable(HeroPoolArray), Add(Multiply(5, Player Variable(Event Player, ActiveDuelZone)), Add(Player Variable(
-			Player Variable(Event Player, CurrentOpponent), MatchLosses), 1)))), Null, Null, Left, 2, Team 2, Team 2, White,
-			Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(Event Player, And(Compare(Player Variable(Current Array Element, PlayerState), >, 2), Compare(
-			Player Variable(Player Variable(Event Player, CurrentOpponent), MatchLosses), <, 1))), Hero Icon String(Value In Array(
-			Global Variable(HeroPoolArray), Add(Multiply(5, Player Variable(Event Player, ActiveDuelZone)), Add(Player Variable(
-			Player Variable(Event Player, CurrentOpponent), MatchLosses), 2)))), Null, Null, Left, 3, Team 2, Team 2, White,
-			Visible To and String, Default Visibility);
+		disabled Create HUD Text(Filtered Array(Event Player, Current Array Element.PlayerState > 2), Hero Icon String(Hero Of(Filtered Array(
+			All Players(All Teams),
+			Event Player.ActiveDuelZone == Current Array Element.ActiveDuelZone && Event Player != Current Array Element))),
+			Filtered Array(All Players(All Teams),
+			Event Player.ActiveDuelZone == Current Array Element.ActiveDuelZone && Event Player != Current Array Element), String(
+			"{0} - {1}", Event Player.MatchScore, Filtered Array(All Players(All Teams),
+			Event Player.ActiveDuelZone == Current Array Element.ActiveDuelZone && Event Player != Current Array Element).MatchScore),
+			Left, 1, Team 2, Team 2, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(Event Player, Current Array Element.PlayerState > 2), Hero Icon String(
+			Global.HeroPoolArray[5 * Event Player.ActiveDuelZone + 0 + Event Player.CurrentOpponent.MatchLosses]),
+			Event Player.CurrentOpponent, String("{0} - {1}", Event Player.MatchScore, Event Player.CurrentOpponent.MatchScore), Left, 1,
+			Team 2, Team 2, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(Event Player,
+			Current Array Element.PlayerState > 2 && Event Player.CurrentOpponent.MatchLosses < 2), Hero Icon String(
+			Global.HeroPoolArray[5 * Event Player.ActiveDuelZone + Event Player.CurrentOpponent.MatchLosses + 1]), Null, Null, Left, 2,
+			Team 2, Team 2, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(Event Player,
+			Current Array Element.PlayerState > 2 && Event Player.CurrentOpponent.MatchLosses < 1), Hero Icon String(
+			Global.HeroPoolArray[5 * Event Player.ActiveDuelZone + Event Player.CurrentOpponent.MatchLosses + 2]), Null, Null, Left, 3,
+			Team 2, Team 2, White, Visible To and String, Default Visibility);
 	}
 }
 
@@ -437,24 +494,18 @@ rule("INIT: Setup Duel Zone")
 
 	actions
 	{
-		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			0)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 0), Value In Array(Global Variable(
-			DuelZoneRadiusList), 0), Visible To Position and Radius);
-		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			1)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 1), Value In Array(Global Variable(
-			DuelZoneRadiusList), 1), Visible To Position and Radius);
-		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			2)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 2), Value In Array(Global Variable(
-			DuelZoneRadiusList), 2), Visible To Position and Radius);
-		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			3)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 3), Value In Array(Global Variable(
-			DuelZoneRadiusList), 3), Visible To Position and Radius);
-		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			4)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 4), Value In Array(Global Variable(
-			DuelZoneRadiusList), 4), Visible To Position and Radius);
-		Create Effect(Filtered Array(All Living Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			5)), Sphere, Yellow, Value In Array(Global Variable(DuelZonePositionList), 5), Value In Array(Global Variable(
-			DuelZoneRadiusList), 5), Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Current Array Element.ActiveDuelZone == 0), Sphere, Yellow,
+			Global.DuelZonePositionList[0], Global.DuelZoneRadiusList[0], Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Current Array Element.ActiveDuelZone == 1), Sphere, Yellow,
+			Global.DuelZonePositionList[1], Global.DuelZoneRadiusList[1], Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Current Array Element.ActiveDuelZone == 2), Sphere, Yellow,
+			Global.DuelZonePositionList[2], Global.DuelZoneRadiusList[2], Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Current Array Element.ActiveDuelZone == 3), Sphere, Yellow,
+			Global.DuelZonePositionList[3], Global.DuelZoneRadiusList[3], Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Current Array Element.ActiveDuelZone == 4), Sphere, Yellow,
+			Global.DuelZonePositionList[4], Global.DuelZoneRadiusList[4], Visible To Position and Radius);
+		Create Effect(Filtered Array(All Living Players(All Teams), Current Array Element.ActiveDuelZone == 5), Sphere, Yellow,
+			Global.DuelZonePositionList[5], Global.DuelZoneRadiusList[5], Visible To Position and Radius);
 	}
 }
 
@@ -467,15 +518,12 @@ rule("INIT: Create Barriers")
 
 	actions
 	{
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(BarrierPositionList), 0), Value In Array(
-			Global Variable(BarrierRadiusList), 0), Visible To);
-		Abort If(Compare(Count Of(Global Variable(BarrierPositionList)), <, 1));
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(BarrierPositionList), 1), Value In Array(
-			Global Variable(BarrierRadiusList), 1), Visible To);
-		Abort If(Compare(Count Of(Global Variable(BarrierPositionList)), <, 2));
-		Create Effect(All Players(All Teams), Sphere, Red, Value In Array(Global Variable(BarrierPositionList), 2), Value In Array(
-			Global Variable(BarrierRadiusList), 2), Visible To);
-		Abort If(Compare(Count Of(Global Variable(BarrierPositionList)), <, 3));
+		Create Effect(All Players(All Teams), Sphere, Red, Global.BarrierPositionList[0], Global.BarrierRadiusList[0], Visible To);
+		Abort If(Count Of(Global.BarrierPositionList) < 1);
+		Create Effect(All Players(All Teams), Sphere, Red, Global.BarrierPositionList[1], Global.BarrierRadiusList[1], Visible To);
+		Abort If(Count Of(Global.BarrierPositionList) < 2);
+		Create Effect(All Players(All Teams), Sphere, Red, Global.BarrierPositionList[2], Global.BarrierRadiusList[2], Visible To);
+		Abort If(Count Of(Global.BarrierPositionList) < 3);
 	}
 }
 
@@ -490,7 +538,7 @@ rule("INIT PLAYER: Setup Data")
 
 	actions
 	{
-		Set Player Variable(Event Player, ActiveDuelZone, -1.000);
+		Event Player.ActiveDuelZone = -1;
 		disabled Disable Built-In Game Mode Respawning(Event Player);
 		Preload Hero(Event Player, Hero(Brigitte));
 	}
@@ -507,27 +555,30 @@ rule("ON STATE 1: Teleport Player To Lobby")
 
 	conditions
 	{
-		Player Variable(Event Player, PlayerState) == 1;
+		Event Player.PlayerState == 1;
 		Is Alive(Event Player) == True;
 	}
 
 	actions
 	{
-		Teleport(Event Player, Add(Global Variable(LobbyPosition), Vector(Random Real(-3.000, 3), 0, Random Real(-3.000, 3))));
-		Set Player Variable(Event Player, ActiveDuelZone, -1.000);
-		Set Player Variable(Event Player, MatchLosses, 0);
-		Set Player Variable(Event Player, MatchScore, 0);
-		Set Player Variable(Event Player, PlayerState, 2);
-		Set Player Variable(Event Player, TimeSpentWaiting, 0);
+		Teleport(Event Player, Global.LobbyPosition + Vector(Random Real(-3, 3), 0, Random Real(-3, 3)));
+		Wait(0.100, Abort When False);
+		Event Player.ActiveDuelZone = -1;
+		Event Player.MatchLosses = 0;
+		Event Player.MatchScore = 0;
+		Event Player.PlayerState = 2;
+		Event Player.TimeSpentWaiting = 0;
 		Chase Player Variable At Rate(Event Player, TimeSpentWaiting, 9999, 1, None);
 		Set Status(Event Player, Null, Phased Out, 9999);
-		Skip If(Compare(Hero Of(Event Player), !=, Hero(Tracer)), 1);
-		Disallow Button(Event Player, Ability 2);
-		disabled Set Global Variable(ZDebug, Filtered Array(All Living Players(All Teams), And(Compare(Player Variable(Current Array Element,
-			PlayerState), ==, 2), Compare(Event Player, !=, Current Array Element))));
-		Skip If(Compare(Count Of(Filtered Array(All Living Players(All Teams), And(Compare(Player Variable(Current Array Element,
-			PlayerState), ==, 2), Compare(Event Player, !=, Current Array Element)))), >, 1), 1);
-		Set Global Variable(MatchmakerTicker, Global Variable(ConfigMatchmakerTimer));
+		If(Hero Of(Event Player) == Hero(Tracer));
+			Disallow Button(Event Player, Ability 2);
+		End;
+		disabled Global.ZDebug = Filtered Array(All Living Players(All Teams),
+			Current Array Element.PlayerState == 2 && Event Player != Current Array Element);
+		If(Count Of(Filtered Array(All Living Players(All Teams),
+			Current Array Element.PlayerState == 2 && Event Player != Current Array Element)) <= 1);
+			Global.MatchmakerTicker = Global.ConfigMatchmakerTimer;
+		End;
 	}
 }
 
@@ -542,31 +593,27 @@ rule("ON STATE 3: Teleport / Reset Player For Match")
 
 	conditions
 	{
-		Player Variable(Event Player, PlayerState) == 3;
+		Event Player.PlayerState == 3;
 	}
 
 	actions
 	{
-		Teleport(Event Player, Add(Global Variable(LobbyPosition), Vector(Random Real(-3.000, 3), 100, Random Real(-3.000, 3))));
+		Teleport(Event Player, Global.LobbyPosition + Vector(Random Real(-3, 3), 100, Random Real(-3, 3)));
 		Preload Hero(Event Player, Hero(Brigitte));
 		Wait(0.250, Ignore Condition);
-		disabled Set Player Variable(Event Player, TempHeroWasOn, Hero Of(Event Player));
 		Start Forcing Player To Be Hero(Event Player, Hero(Brigitte));
 		Wait(0.016, Ignore Condition);
-		Start Forcing Player To Be Hero(Event Player, Value In Array(Global Variable(HeroPoolArray), Add(Multiply(5, Player Variable(
-			Event Player, ActiveDuelZone)), Player Variable(Event Player, MatchLosses))));
+		Start Forcing Player To Be Hero(Event Player, Global.HeroPoolArray[5 * Event Player.ActiveDuelZone + Event Player.MatchLosses]);
 		Stop Forcing Player To Be Hero(Event Player);
 		Disallow Button(Event Player, Primary Fire);
 		Disallow Button(Event Player, Secondary Fire);
 		Disallow Button(Event Player, Ability 1);
 		Disallow Button(Event Player, Ability 2);
-		Teleport(Event Player, Value In Array(Global Variable(DuelZoneSpawnList), Add(Multiply(Player Variable(Event Player,
-			ActiveDuelZone), 2), Player Variable(Event Player, PlayerNumberOffset))));
+		Teleport(Event Player, Global.DuelZoneSpawnList[Event Player.ActiveDuelZone * 2 + Event Player.PlayerNumberOffset]);
 		Wait(0.100, Ignore Condition);
-		Set Facing(Event Player, Direction Towards(Eye Position(Event Player), Value In Array(Global Variable(DuelZoneSpawnList), Add(
-			Multiply(Player Variable(Event Player, ActiveDuelZone), 2), Player Variable(Event Player, EnemyPlayerNumberOffset)))),
-			To World);
-		Set Player Variable(Event Player, PlayerState, 4);
+		Set Facing(Event Player, Direction Towards(Eye Position(Event Player),
+			Global.DuelZoneSpawnList[Event Player.ActiveDuelZone * 2 + Event Player.EnemyPlayerNumberOffset]), To World);
+		Event Player.PlayerState = 4;
 		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
 		Small Message(Event Player, 3);
 		Wait(1, Ignore Condition);
@@ -577,7 +624,7 @@ rule("ON STATE 3: Teleport / Reset Player For Match")
 		Small Message(Event Player, 1);
 		Wait(1, Ignore Condition);
 		Play Effect(Event Player, Ring Explosion Sound, White, Event Player, 86);
-		Small Message(Event Player, Custom String("FIGHT!", Null, Null, Null));
+		Small Message(Event Player, Custom String("FIGHT!"));
 		Allow Button(Event Player, Primary Fire);
 		Allow Button(Event Player, Secondary Fire);
 		Allow Button(Event Player, Ability 1);
@@ -598,39 +645,45 @@ rule("ON STATE 4: Player In Match Dies")
 	conditions
 	{
 		Is Game In Progress == True;
-		Player Variable(Event Player, PlayerState) == 4;
+		Event Player.PlayerState == 4;
 	}
 
 	actions
 	{
-		Modify Player Variable(Event Player, MatchLosses, Add, 1);
-		Set Player Variable(Event Player, TempOpponent, Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player,
-			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
-			Current Array Element))));
-		Set Player Variable(Event Player, TempOpponent, First Of(Player Variable(Event Player, TempOpponent)));
-		Modify Player Variable(Player Variable(Event Player, TempOpponent), MatchScore, Add, 1);
-		Skip If(Compare(Player Variable(Player Variable(Event Player, TempOpponent), MatchScore), >=, Global Variable(ConfigScoreToWin)),
-			5);
-		Play Effect(Player Variable(Event Player, TempOpponent), Explosion Sound, White, Player Variable(Event Player, TempOpponent), 80);
-		Set Player Variable(Event Player, PlayerState, 5);
-		Disable Built-In Game Mode Respawning(Player Variable(Event Player, TempOpponent));
-		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 7);
-		Abort;
-		Set Player Score(Event Player, Max(Min(Add(Score Of(Event Player), -1.000), 5), 0));
-		Set Player Score(Player Variable(Event Player, TempOpponent), Max(Min(Add(Score Of(Player Variable(Event Player, TempOpponent)),
-			1), 5), 0));
-		Big Message(Player Variable(Event Player, TempOpponent), Custom String("YOU WON!", Null, Null, Null));
+		Event Player.MatchLosses += 1;
+		Event Player.TempOpponent = Filtered Array(All Players(All Teams),
+			Event Player.ActiveDuelZone == Current Array Element.ActiveDuelZone && Event Player != Current Array Element);
+		Event Player.TempOpponent = First Of(Event Player.TempOpponent);
+		Event Player.TempOpponent.MatchScore += 1;
+		If(Event Player.TempOpponent.MatchScore < Global.ConfigScoreToWin);
+			Play Effect(Event Player.TempOpponent, Explosion Sound, White, Event Player.TempOpponent, 80);
+			Event Player.PlayerState = 5;
+			Disable Built-In Game Mode Respawning(Event Player.TempOpponent);
+			Event Player.TempOpponent.PlayerState = 7;
+			"Match isn't over, abort running the rest of the code"
+			Abort;
+		End;
+		Set Player Score(Event Player, Max(Min(Score Of(Event Player) + -1, 5), 0));
+		Set Player Score(Event Player.TempOpponent, Max(Min(Score Of(Event Player.TempOpponent) + 1, 5), 0));
+		Big Message(Event Player.TempOpponent, Custom String("YOU WON!"));
 		Wait(1, Ignore Condition);
-		Set Player Variable(Event Player, PlayerState, 1);
-		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 1);
-		Skip If(Compare(Player Variable(Event Player, LastOpponent), !=, Player Variable(Event Player, TempOpponent)), 2);
-		Modify Player Variable(Event Player, RepeatedOpponentCounter, Add, 1);
-		Skip(1);
-		Set Player Variable(Event Player, RepeatedOpponentCounter, 0);
-		Set Player Variable(Event Player, LastOpponent, Player Variable(Event Player, TempOpponent));
-		Skip If(Compare(Player Variable(Player Variable(Event Player, TempOpponent), LastOpponent), ==, Event Player), 1);
-		Set Player Variable(Player Variable(Event Player, TempOpponent), RepeatedOpponentCounter, 0);
-		Set Player Variable(Player Variable(Event Player, TempOpponent), LastOpponent, Event Player);
+		Event Player.PlayerState = 1;
+		"Check if the opponent hasn't left"
+		Abort If(!Entity Exists(Event Player.TempOpponent));
+		Event Player.TempOpponent.PlayerState = 1;
+		If(Event Player.LastOpponent == Event Player.TempOpponent);
+			Event Player.RepeatedOpponentCounter += 1;
+		Else;
+			Event Player.RepeatedOpponentCounter = 0;
+			Event Player.LastOpponent = Event Player.TempOpponent;
+		End;
+		"Check if the opponent's opponent hasn't left or become invalid somehow"
+		Abort If(!Entity Exists(Event Player.TempOpponent.TempOpponent));
+		If(Event Player.TempOpponent.LastOpponent != Event Player);
+			Event Player.TempOpponent.RepeatedOpponentCounter = 0;
+			Event Player.TempOpponent.LastOpponent = Event Player;
+		End;
+		Global.DEBUG = 0;
 	}
 }
 
@@ -646,14 +699,14 @@ rule("ON STATE 5: Wait For Loser to Spawn")
 	conditions
 	{
 		Is Game In Progress == True;
-		Player Variable(Event Player, PlayerState) == 5;
+		Event Player.PlayerState == 5;
 		Is Dead(Event Player) == False;
 		Is Alive(Event Player) == True;
 	}
 
 	actions
 	{
-		Set Player Variable(Event Player, PlayerState, 6);
+		Event Player.PlayerState = 6;
 	}
 }
 
@@ -669,13 +722,13 @@ rule("ON STATE 5: Loser Won't Spawn")
 	conditions
 	{
 		Is Game In Progress == True;
-		Player Variable(Event Player, PlayerState) == 5;
+		Event Player.PlayerState == 5;
 	}
 
 	actions
 	{
 		Wait(10, Abort When False);
-		Set Player Variable(Event Player, PlayerState, 6);
+		Event Player.PlayerState = 6;
 	}
 }
 
@@ -691,20 +744,19 @@ rule("ON STATE 6: Loser Spawned")
 	conditions
 	{
 		Is Game In Progress == True;
-		Player Variable(Event Player, PlayerState) == 6;
+		Event Player.PlayerState == 6;
 		Is Alive(Event Player) == True;
 	}
 
 	actions
 	{
-		Set Player Variable(Event Player, TempOpponent, Filtered Array(All Players(All Teams), And(Compare(Player Variable(Event Player,
-			ActiveDuelZone), ==, Player Variable(Current Array Element, ActiveDuelZone)), Compare(Event Player, !=,
-			Current Array Element))));
-		Set Player Variable(Event Player, TempOpponent, First Of(Player Variable(Event Player, TempOpponent)));
-		Enable Built-In Game Mode Respawning(Player Variable(Event Player, TempOpponent));
-		Set Player Variable(Event Player, PlayerState, 3);
-		Resurrect(Player Variable(Event Player, TempOpponent));
-		Set Player Variable(Player Variable(Event Player, TempOpponent), PlayerState, 3);
+		Event Player.TempOpponent = Filtered Array(All Players(All Teams),
+			Event Player.ActiveDuelZone == Current Array Element.ActiveDuelZone && Event Player != Current Array Element);
+		Event Player.TempOpponent = First Of(Event Player.TempOpponent);
+		Enable Built-In Game Mode Respawning(Event Player.TempOpponent);
+		Event Player.PlayerState = 3;
+		Resurrect(Event Player.TempOpponent);
+		Event Player.TempOpponent.PlayerState = 3;
 	}
 }
 
@@ -719,13 +771,13 @@ rule("ON: Lobby Player Dies")
 
 	conditions
 	{
-		Player Variable(Event Player, PlayerState) <= 2;
+		Event Player.PlayerState <= 2;
 	}
 
 	actions
 	{
-		Set Player Variable(Event Player, PlayerState, 0);
-		Set Player Variable(Event Player, PlayerState, 1);
+		Event Player.PlayerState = 0;
+		Event Player.PlayerState = 1;
 	}
 }
 
@@ -745,7 +797,7 @@ rule("ON: Player Spawns")
 
 	actions
 	{
-		Set Player Variable(Event Player, PlayerState, 1);
+		Event Player.PlayerState = 1;
 	}
 }
 
@@ -758,67 +810,55 @@ rule("ON: Run Matchmaker When Clock is 0")
 
 	conditions
 	{
-		Global Variable(MatchmakerTicker) == 0;
+		Global.MatchmakerTicker == 0;
 	}
 
 	actions
 	{
 		Wait(1, Ignore Condition);
-		Set Global Variable(TempWaitingPlayersList, Filtered Array(All Living Players(All Teams), Compare(Player Variable(
-			Current Array Element, PlayerState), ==, 2)));
-		Abort If(Compare(Count Of(Global Variable(TempWaitingPlayersList)), <, 2));
-		Set Global Variable(TempWaitingPlayersList, Randomized Array(Global Variable(TempWaitingPlayersList)));
-		Set Global Variable(TempWaitingPlayersList, Sorted Array(Global Variable(TempWaitingPlayersList), Multiply(Add(Multiply(Score Of(
-			Current Array Element), 25), Subtract(Player Variable(Current Array Element, TimeSpentWaiting), Multiply(Player Variable(
-			Current Array Element, RepeatedOpponentCounter), 25))), -1.000)));
-		Skip If(Compare(Random Real(0, 1000), >, 500), 3);
-		Set Global Variable(TempPlayerOne, Value In Array(Global Variable(TempWaitingPlayersList), 0));
-		Set Global Variable(TempPlayerTwo, Value In Array(Global Variable(TempWaitingPlayersList), 1));
-		Skip(2);
-		Set Global Variable(TempPlayerOne, Value In Array(Global Variable(TempWaitingPlayersList), 1));
-		Set Global Variable(TempPlayerTwo, Value In Array(Global Variable(TempWaitingPlayersList), 0));
-		Set Global Variable(TempAvailableDuelZones, Empty Array);
-		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			0))), !=, 0), 1);
+		Global.TempWaitingPlayersList = Filtered Array(All Living Players(All Teams), Current Array Element.PlayerState == 2);
+		Abort If(Count Of(Global.TempWaitingPlayersList) < 2);
+		Global.TempWaitingPlayersList = Randomized Array(Global.TempWaitingPlayersList);
+		Global.TempWaitingPlayersList = Sorted Array(Global.TempWaitingPlayersList, (Score Of(Current Array Element) * 25 + (
+			Current Array Element.TimeSpentWaiting - Current Array Element.RepeatedOpponentCounter * 25)) * -1);
+		If(Random Real(0, 1000) > 500);
+			Global.TempPlayerOne = Global.TempWaitingPlayersList[0];
+			Global.TempPlayerTwo = Global.TempWaitingPlayersList[1];
+		Else;
+			Global.TempPlayerOne = Global.TempWaitingPlayersList[1];
+			Global.TempPlayerTwo = Global.TempWaitingPlayersList[0];
+		End;
+		Global.TempAvailableDuelZones = Empty Array;
+		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 0)) != 0, 1);
 		Modify Global Variable(TempAvailableDuelZones, Append To Array, 0);
-		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			1))), !=, 0), 1);
+		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 1)) != 0, 1);
 		Modify Global Variable(TempAvailableDuelZones, Append To Array, 1);
-		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			2))), !=, 0), 1);
+		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 2)) != 0, 1);
 		Modify Global Variable(TempAvailableDuelZones, Append To Array, 2);
-		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			3))), !=, 0), 1);
+		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 3)) != 0, 1);
 		Modify Global Variable(TempAvailableDuelZones, Append To Array, 3);
-		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			4))), !=, 0), 1);
+		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 4)) != 0, 1);
 		Modify Global Variable(TempAvailableDuelZones, Append To Array, 4);
-		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==,
-			5))), !=, 0), 1);
+		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 5)) != 0, 1);
 		Modify Global Variable(TempAvailableDuelZones, Append To Array, 5);
-		Set Global Variable(TempAvailableDuelZones, Random Value In Array(Global Variable(TempAvailableDuelZones)));
-		Set Player Variable(Global Variable(TempPlayerOne), ActiveDuelZone, Global Variable(TempAvailableDuelZones));
-		Set Player Variable(Global Variable(TempPlayerTwo), ActiveDuelZone, Global Variable(TempAvailableDuelZones));
-		Set Player Variable(Global Variable(TempPlayerOne), PlayerState, 3);
-		Set Player Variable(Global Variable(TempPlayerTwo), PlayerState, 3);
-		Set Player Variable(Global Variable(TempPlayerOne), PlayerNumberOffset, 0);
-		Set Player Variable(Global Variable(TempPlayerTwo), PlayerNumberOffset, 1);
-		Set Player Variable(Global Variable(TempPlayerOne), EnemyPlayerNumberOffset, 1);
-		Set Player Variable(Global Variable(TempPlayerTwo), EnemyPlayerNumberOffset, 0);
-		Set Global Variable(TempHeroPool, Randomized Array(Allowed Heroes(Global Variable(TempPlayerOne))));
-		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 0), Value In Array(
-			Global Variable(TempHeroPool), 0));
-		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 1), Value In Array(
-			Global Variable(TempHeroPool), 1));
-		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 2), Value In Array(
-			Global Variable(TempHeroPool), 2));
-		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 3), Value In Array(
-			Global Variable(TempHeroPool), 3));
-		Set Global Variable At Index(HeroPoolArray, Add(Multiply(5, Global Variable(TempAvailableDuelZones)), 4), Value In Array(
-			Global Variable(TempHeroPool), 4));
-		Set Player Variable(Global Variable(TempPlayerOne), CurrentOpponent, Global Variable(TempPlayerTwo));
-		Set Player Variable(Global Variable(TempPlayerTwo), CurrentOpponent, Global Variable(TempPlayerOne));
-		Loop If(Compare(Count Of(Global Variable(TempWaitingPlayersList)), >=, 2));
+		Global.TempAvailableDuelZones = Random Value In Array(Global.TempAvailableDuelZones);
+		Global.TempPlayerOne.ActiveDuelZone = Global.TempAvailableDuelZones;
+		Global.TempPlayerTwo.ActiveDuelZone = Global.TempAvailableDuelZones;
+		Global.TempPlayerOne.PlayerState = 3;
+		Global.TempPlayerTwo.PlayerState = 3;
+		Global.TempPlayerOne.PlayerNumberOffset = 0;
+		Global.TempPlayerTwo.PlayerNumberOffset = 1;
+		Global.TempPlayerOne.EnemyPlayerNumberOffset = 1;
+		Global.TempPlayerTwo.EnemyPlayerNumberOffset = 0;
+		Global.TempHeroPool = Randomized Array(Allowed Heroes(Global.TempPlayerOne));
+		Global.HeroPoolArray[5 * Global.TempAvailableDuelZones + 0] = Global.TempHeroPool[0];
+		Global.HeroPoolArray[5 * Global.TempAvailableDuelZones + 1] = Global.TempHeroPool[1];
+		Global.HeroPoolArray[5 * Global.TempAvailableDuelZones + 2] = Global.TempHeroPool[2];
+		Global.HeroPoolArray[5 * Global.TempAvailableDuelZones + 3] = Global.TempHeroPool[3];
+		Global.HeroPoolArray[5 * Global.TempAvailableDuelZones + 4] = Global.TempHeroPool[4];
+		Global.TempPlayerOne.CurrentOpponent = Global.TempPlayerTwo;
+		Global.TempPlayerTwo.CurrentOpponent = Global.TempPlayerOne;
+		Loop If(Count Of(Global.TempWaitingPlayersList) >= 2);
 	}
 }
 
@@ -831,12 +871,12 @@ rule("LOOP: Matchmaker Clock")
 
 	conditions
 	{
-		Global Variable(MatchmakerTicker) == 0;
+		Global.MatchmakerTicker == 0;
 	}
 
 	actions
 	{
-		Set Global Variable(MatchmakerTicker, Global Variable(ConfigMatchmakerTimer));
+		Global.MatchmakerTicker = Global.ConfigMatchmakerTimer;
 		Chase Global Variable At Rate(MatchmakerTicker, 0, 1, None);
 	}
 }
@@ -852,16 +892,16 @@ rule("ON: Damaging Non-Opponent During Match")
 
 	conditions
 	{
-		Player Variable(Victim, PlayerState) > 2;
+		Victim.PlayerState > 2;
 		Victim != Event Player;
-		Player Variable(Event Player, ActiveDuelZone) != Player Variable(Victim, ActiveDuelZone);
+		Event Player.ActiveDuelZone != Victim.ActiveDuelZone;
 	}
 
 	actions
 	{
 		Kill(Event Player, Null);
-		Big Message(Event Player, Custom String("NO GRIEFING", Null, Null, Null));
-		Modify Player Score(Event Player, -10.000);
+		Big Message(Event Player, Custom String("NO GRIEFING"));
+		Modify Player Score(Event Player, -10);
 	}
 }
 
@@ -876,16 +916,15 @@ rule("COLLIDE: Outside of Duel Zone")
 
 	conditions
 	{
-		Player Variable(Event Player, PlayerState) >= 4;
-		Distance Between(Event Player, Value In Array(Global Variable(DuelZonePositionList), Player Variable(Event Player,
-			ActiveDuelZone))) >= Subtract(Value In Array(Global Variable(DuelZoneRadiusList), Player Variable(Event Player,
-			ActiveDuelZone)), 1);
+		Event Player.PlayerState >= 4;
+		Distance Between(Event Player, Global.DuelZonePositionList[Event Player.ActiveDuelZone])
+			>= Global.DuelZoneRadiusList[Event Player.ActiveDuelZone] - 1;
 	}
 
 	actions
 	{
-		Apply Impulse(Event Player, Multiply(Direction Towards(Event Player, Value In Array(Global Variable(DuelZonePositionList),
-			Player Variable(Event Player, ActiveDuelZone))), 1), 20, To World, Cancel Contrary Motion);
+		Apply Impulse(Event Player, Direction Towards(Event Player, Global.DuelZonePositionList[Event Player.ActiveDuelZone]) * 1, 20,
+			To World, Cancel Contrary Motion);
 		Damage(Event Player, Null, 50);
 		Set Status(Event Player, Null, Burning, 1);
 		Wait(0.250, Ignore Condition);
@@ -904,16 +943,15 @@ rule("COLLIDE: Inside of Barrier")
 
 	conditions
 	{
-		Player Variable(Event Player, PlayerState) >= 4;
-		Count Of(Filtered Array(Global Variable(BarrierPositionList), Compare(Subtract(Distance Between(Current Array Element,
-			Event Player), 0.500), <=, Value In Array(Global Variable(BarrierRadiusList), Index Of Array Value(Global Variable(
-			BarrierPositionList), Current Array Element))))) > 0;
+		Event Player.PlayerState >= 4;
+		Count Of(Filtered Array(Global.BarrierPositionList, Distance Between(Current Array Element, Event Player)
+			- 0.500 <= Global.BarrierRadiusList[Index Of Array Value(Global.BarrierPositionList, Current Array Element)])) > 0;
 	}
 
 	actions
 	{
 		Kill(Event Player, Null);
-		Big Message(Event Player, Custom String("OUT OF BOUNDS", Null, Null, Null));
+		Big Message(Event Player, Custom String("OUT OF BOUNDS"));
 	}
 }
 
@@ -928,42 +966,36 @@ rule("ON: Player Disconnected")
 
 	actions
 	{
-		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
-			ActiveDuelZone), ==, 0)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
-		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
-		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
-		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
-			ActiveDuelZone), ==, 1)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
-		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
-		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
-		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
-			ActiveDuelZone), ==, 2)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
-		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
-		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
-		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
-			ActiveDuelZone), ==, 3)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
-		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
-		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
-		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
-			ActiveDuelZone), ==, 4)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
-		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
-		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
-		Set Global Variable(TempOrphanPlayers, Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element,
-			ActiveDuelZone), ==, 5)));
-		Skip If(Compare(Count Of(Global Variable(TempOrphanPlayers)), !=, 1), 3);
-		Set Player Score(Global Variable(TempOrphanPlayers), Max(Min(Add(Score Of(Global Variable(TempOrphanPlayers)), 1), 5), 0));
-		Set Player Variable(Global Variable(TempOrphanPlayers), PlayerState, 1);
-		Enable Built-In Game Mode Respawning(Global Variable(TempOrphanPlayers));
+		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 0);
+		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		Global.TempOrphanPlayers.PlayerState = 1;
+		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 1);
+		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		Global.TempOrphanPlayers.PlayerState = 1;
+		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 2);
+		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		Global.TempOrphanPlayers.PlayerState = 1;
+		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 3);
+		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		Global.TempOrphanPlayers.PlayerState = 1;
+		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 4);
+		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		Global.TempOrphanPlayers.PlayerState = 1;
+		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 5);
+		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		Global.TempOrphanPlayers.PlayerState = 1;
+		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
 	}
 }
 
@@ -976,42 +1008,42 @@ rule("INIT: Create Spectate Zone Effects")
 
 	actions
 	{
-		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-102.000, 3, -82.000), 2, Visible To Position and Radius);
-		Create In-World Text(All Players(All Teams), String("#{0}", 1, Null, Null), Vector(-102.000, 6, -82.000), 2, Clip Against Surfaces,
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-102, 3, -82), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 1), Vector(-102, 6, -82), 2, Clip Against Surfaces,
 			Visible To Position and String, White, Default Visibility);
-		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
-			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 0))), Null), Vector(-102.000, 5,
-			-82.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
-		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-97.000, 3, -77.000), 2, Visible To Position and Radius);
-		Create In-World Text(All Players(All Teams), String("#{0}", 2, Null, Null), Vector(-97.000, 6, -77.000), 2, Clip Against Surfaces,
+		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players"), Count Of(Filtered Array(All Players(All Teams),
+			Current Array Element.ActiveDuelZone == 0))), Vector(-102, 5, -82), 1.500, Clip Against Surfaces, Visible To and String, White,
+			Default Visibility);
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-97, 3, -77), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 2), Vector(-97, 6, -77), 2, Clip Against Surfaces,
 			Visible To Position and String, White, Default Visibility);
-		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
-			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 1))), Null), Vector(-97.000, 5,
-			-77.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
-		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-86.000, 9.500, -65.000), 2, Visible To Position and Radius);
-		Create In-World Text(All Players(All Teams), String("#{0}", 3, Null, Null), Vector(-86.000, 12, -65.000), 2, Clip Against Surfaces,
+		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players"), Count Of(Filtered Array(All Players(All Teams),
+			Current Array Element.ActiveDuelZone == 1))), Vector(-97, 5, -77), 1.500, Clip Against Surfaces, Visible To and String, White,
+			Default Visibility);
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-86, 9.500, -65), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 3), Vector(-86, 12, -65), 2, Clip Against Surfaces,
 			Visible To Position and String, White, Default Visibility);
-		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
-			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 2))), Null), Vector(-86.000, 11,
-			-65.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
-		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-94.000, 9.500, -55.000), 2, Visible To Position and Radius);
-		Create In-World Text(All Players(All Teams), String("#{0}", 4, Null, Null), Vector(-94.000, 12, -55.000), 2, Clip Against Surfaces,
+		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players"), Count Of(Filtered Array(All Players(All Teams),
+			Current Array Element.ActiveDuelZone == 2))), Vector(-86, 11, -65), 1.500, Clip Against Surfaces, Visible To and String, White,
+			Default Visibility);
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-94, 9.500, -55), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 4), Vector(-94, 12, -55), 2, Clip Against Surfaces,
 			Visible To Position and String, White, Default Visibility);
-		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
-			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 3))), Null), Vector(-94.000, 11,
-			-55.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players"), Count Of(Filtered Array(All Players(All Teams),
+			Current Array Element.ActiveDuelZone == 3))), Vector(-94, 11, -55), 1.500, Clip Against Surfaces, Visible To and String, White,
+			Default Visibility);
 		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-108.934, 3, -70.808), 2, Visible To Position and Radius);
-		Create In-World Text(All Players(All Teams), String("#{0}", 5, Null, Null), Vector(-108.934, 6, -70.808), 2, Clip Against Surfaces,
+		Create In-World Text(All Players(All Teams), String("#{0}", 5), Vector(-108.934, 6, -70.808), 2, Clip Against Surfaces,
 			Visible To Position and String, White, Default Visibility);
-		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
-			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 4))), Null), Vector(-108.934, 5,
-			-70.808), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
-		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-114.000, 3, -77.000), 2, Visible To Position and Radius);
-		Create In-World Text(All Players(All Teams), String("#{0}", 6, Null, Null), Vector(-114.000, 6, -77.000), 2, Clip Against Surfaces,
+		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players"), Count Of(Filtered Array(All Players(All Teams),
+			Current Array Element.ActiveDuelZone == 4))), Vector(-108.934, 5, -70.808), 1.500, Clip Against Surfaces,
+			Visible To and String, White, Default Visibility);
+		Create Effect(All Players(All Teams), Light Shaft, Aqua, Vector(-114, 3, -77), 2, Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), String("#{0}", 6), Vector(-114, 6, -77), 2, Clip Against Surfaces,
 			Visible To Position and String, White, Default Visibility);
-		disabled Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players", Null, Null, Null), Count Of(Filtered Array(
-			All Players(All Teams), Compare(Player Variable(Current Array Element, ActiveDuelZone), ==, 5))), Null), Vector(-114.000, 5,
-			-77.000), 1.500, Clip Against Surfaces, Visible To and String, White, Default Visibility);
+		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Players"), Count Of(Filtered Array(All Players(All Teams),
+			Current Array Element.ActiveDuelZone == 5))), Vector(-114, 5, -77), 1.500, Clip Against Surfaces, Visible To and String, White,
+			Default Visibility);
 	}
 }
 
@@ -1026,18 +1058,17 @@ rule("ON: On Spectate Zone #1")
 
 	conditions
 	{
-		Distance Between(Event Player, Vector(-102.000, 5, -82.000)) <= 2;
-		Player Variable(Event Player, PlayerState) == 2;
+		Distance Between(Event Player, Vector(-102, 5, -82)) <= 2;
+		Event Player.PlayerState == 2;
 	}
 
 	actions
 	{
 		Abort If(Is In Air(Event Player));
-		Start Camera(Event Player, Vector(-68.000, 15, -46.000), Add(Vector(-68.321, 15, -46.540), Facing Direction Of(Event Player)), 10);
-		Set Facing(Event Player, Direction Towards(Vector(-68.000, 15, -46.000), Value In Array(Global Variable(DuelZonePositionList), 0)),
-			To World);
-		Set Player Variable(Event Player, Spectating, Vector(-102.000, 5, -82.000));
-		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+		Start Camera(Event Player, Vector(-68, 15, -46), Vector(-68.321, 15, -46.540) + Facing Direction Of(Event Player), 10);
+		Set Facing(Event Player, Direction Towards(Vector(-68, 15, -46), Global.DuelZonePositionList[0]), To World);
+		Event Player.Spectating = Vector(-102, 5, -82);
+		Small Message(Event Player, Custom String("Jump or move to stop spectating"));
 	}
 }
 
@@ -1052,18 +1083,17 @@ rule("ON: On Spectate Zone #2")
 
 	conditions
 	{
-		Distance Between(Event Player, Vector(-97.000, 5, -77.000)) <= 2;
-		Player Variable(Event Player, PlayerState) == 2;
+		Distance Between(Event Player, Vector(-97, 5, -77)) <= 2;
+		Event Player.PlayerState == 2;
 	}
 
 	actions
 	{
 		Abort If(Is In Air(Event Player));
-		Start Camera(Event Player, Vector(-6.753, 8, -58.626), Add(Vector(-6.753, 8, -58.626), Facing Direction Of(Event Player)), 10);
-		Set Facing(Event Player, Direction Towards(Vector(-68.000, 15, -46.000), Value In Array(Global Variable(DuelZonePositionList), 1)),
-			To World);
-		Set Player Variable(Event Player, Spectating, Vector(-97.000, 5, -77.000));
-		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+		Start Camera(Event Player, Vector(-6.753, 8, -58.626), Vector(-6.753, 8, -58.626) + Facing Direction Of(Event Player), 10);
+		Set Facing(Event Player, Direction Towards(Vector(-68, 15, -46), Global.DuelZonePositionList[1]), To World);
+		Event Player.Spectating = Vector(-97, 5, -77);
+		Small Message(Event Player, Custom String("Jump or move to stop spectating"));
 	}
 }
 
@@ -1078,19 +1108,18 @@ rule("ON: On Spectate Zone #3")
 
 	conditions
 	{
-		Distance Between(Event Player, Vector(-86.000, 11, -65.000)) <= 2;
-		Player Variable(Event Player, PlayerState) == 2;
+		Distance Between(Event Player, Vector(-86, 11, -65)) <= 2;
+		Event Player.PlayerState == 2;
 	}
 
 	actions
 	{
 		Abort If(Is In Air(Event Player));
-		Start Camera(Event Player, Vector(32.976, 19.508, -74.900), Add(Vector(32.976, 19.508, -74.900), Facing Direction Of(
-			Event Player)), 10);
-		Set Facing(Event Player, Direction Towards(Vector(-86.000, 11, -65.000), Value In Array(Global Variable(DuelZonePositionList), 2)),
-			To World);
-		Set Player Variable(Event Player, Spectating, Vector(-86.000, 11, -65.000));
-		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+		Start Camera(Event Player, Vector(32.976, 19.508, -74.900), Vector(32.976, 19.508, -74.900) + Facing Direction Of(Event Player),
+			10);
+		Set Facing(Event Player, Direction Towards(Vector(-86, 11, -65), Global.DuelZonePositionList[2]), To World);
+		Event Player.Spectating = Vector(-86, 11, -65);
+		Small Message(Event Player, Custom String("Jump or move to stop spectating"));
 	}
 }
 
@@ -1105,18 +1134,17 @@ rule("ON: On Spectate Zone #4")
 
 	conditions
 	{
-		Distance Between(Event Player, Vector(-94.000, 11, -55.000)) <= 2;
-		Player Variable(Event Player, PlayerState) == 2;
+		Distance Between(Event Player, Vector(-94, 11, -55)) <= 2;
+		Event Player.PlayerState == 2;
 	}
 
 	actions
 	{
 		Abort If(Is In Air(Event Player));
-		Start Camera(Event Player, Vector(98.003, 19, -72.840), Add(Vector(98.003, 19, -72.840), Facing Direction Of(Event Player)), 10);
-		Set Facing(Event Player, Direction Towards(Vector(98.003, 19, -72.840), Value In Array(Global Variable(DuelZonePositionList), 3)),
-			To World);
-		Set Player Variable(Event Player, Spectating, Vector(-94.000, 11, -55.000));
-		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+		Start Camera(Event Player, Vector(98.003, 19, -72.840), Vector(98.003, 19, -72.840) + Facing Direction Of(Event Player), 10);
+		Set Facing(Event Player, Direction Towards(Vector(98.003, 19, -72.840), Global.DuelZonePositionList[3]), To World);
+		Event Player.Spectating = Vector(-94, 11, -55);
+		Small Message(Event Player, Custom String("Jump or move to stop spectating"));
 	}
 }
 
@@ -1132,18 +1160,17 @@ rule("ON: On Spectate Zone #5")
 	conditions
 	{
 		Distance Between(Event Player, Vector(-108.934, 5, -70.808)) <= 2;
-		Player Variable(Event Player, PlayerState) == 2;
+		Event Player.PlayerState == 2;
 	}
 
 	actions
 	{
 		Abort If(Is In Air(Event Player));
-		Start Camera(Event Player, Vector(124.410, 15.910, -46.384), Add(Vector(124.410, 15.910, -46.384), Facing Direction Of(
-			Event Player)), 10);
-		Set Facing(Event Player, Direction Towards(Vector(124.410, 15.910, -46.384), Value In Array(Global Variable(DuelZonePositionList),
-			4)), To World);
-		Set Player Variable(Event Player, Spectating, Vector(-108.934, 5, -70.808));
-		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+		Start Camera(Event Player, Vector(124.410, 15.910, -46.384), Vector(124.410, 15.910, -46.384) + Facing Direction Of(Event Player),
+			10);
+		Set Facing(Event Player, Direction Towards(Vector(124.410, 15.910, -46.384), Global.DuelZonePositionList[4]), To World);
+		Event Player.Spectating = Vector(-108.934, 5, -70.808);
+		Small Message(Event Player, Custom String("Jump or move to stop spectating"));
 	}
 }
 
@@ -1158,18 +1185,17 @@ rule("ON: On Spectate Zone #6")
 
 	conditions
 	{
-		Distance Between(Event Player, Vector(-114.000, 5, -77.000)) <= 2;
-		Player Variable(Event Player, PlayerState) == 2;
+		Distance Between(Event Player, Vector(-114, 5, -77)) <= 2;
+		Event Player.PlayerState == 2;
 	}
 
 	actions
 	{
 		Abort If(Is In Air(Event Player));
-		Start Camera(Event Player, Vector(227.511, 36, -40.406), Add(Vector(227.511, 36, -40.406), Facing Direction Of(Event Player)), 10);
-		Set Facing(Event Player, Direction Towards(Vector(227.511, 36, -40.406), Value In Array(Global Variable(DuelZonePositionList), 5)),
-			To World);
-		Set Player Variable(Event Player, Spectating, Vector(-114.000, 5, -77.000));
-		Small Message(Event Player, Custom String("Jump or move to stop spectating", Null, Null, Null));
+		Start Camera(Event Player, Vector(227.511, 36, -40.406), Vector(227.511, 36, -40.406) + Facing Direction Of(Event Player), 10);
+		Set Facing(Event Player, Direction Towards(Vector(227.511, 36, -40.406), Global.DuelZonePositionList[5]), To World);
+		Event Player.Spectating = Vector(-114, 5, -77);
+		Small Message(Event Player, Custom String("Jump or move to stop spectating"));
 	}
 }
 
@@ -1184,16 +1210,15 @@ rule("ON: Finished Spectating")
 
 	conditions
 	{
-		Player Variable(Event Player, Spectating) != Null;
-		disabled Distance Between(Player Variable(Event Player, Spectating), Position Of(Event Player)) > 2;
-		Or(Compare(Distance Between(Player Variable(Event Player, Spectating), Position Of(Event Player)), >, 2), Is In Air(Event Player))
-			== True;
+		Event Player.Spectating != Null;
+		disabled Distance Between(Event Player.Spectating, Position Of(Event Player)) > 2;
+		(Distance Between(Event Player.Spectating, Position Of(Event Player)) > 2 || Is In Air(Event Player)) == True;
 	}
 
 	actions
 	{
 		Stop Camera(Event Player);
-		Set Player Variable(Event Player, Spectating, Null);
+		Event Player.Spectating = Null;
 	}
 }
 
@@ -1209,14 +1234,14 @@ rule("ON: Entered AFK Room")
 	conditions
 	{
 		Is In Spawn Room(Event Player) == False;
-		Player Variable(Event Player, PlayerState) == 2;
+		Event Player.PlayerState == 2;
 		Distance Between(Vector(-90.622, 5.176, -61.049), Event Player) < 13;
 	}
 
 	actions
 	{
-		Small Message(Event Player, Custom String("AFK MODE ENABLED", Null, Null, Null));
-		Set Player Variable(Event Player, PlayerState, -4.000);
+		Small Message(Event Player, Custom String("AFK MODE ENABLED"));
+		Event Player.PlayerState = -4;
 		Set Status(Event Player, Null, Phased Out, 9999);
 	}
 }
@@ -1232,13 +1257,13 @@ rule("ON: Exit AFK Room")
 
 	conditions
 	{
-		Player Variable(Event Player, PlayerState) == -4.000;
+		Event Player.PlayerState == -4;
 		Is In Spawn Room(Event Player) == True;
 	}
 
 	actions
 	{
-		Small Message(Event Player, Custom String("AFK MODE DISABLED", Null, Null, Null));
-		Set Player Variable(Event Player, PlayerState, 2);
+		Small Message(Event Player, Custom String("AFK MODE DISABLED"));
+		Event Player.PlayerState = 2;
 	}
 }
