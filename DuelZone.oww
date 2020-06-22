@@ -39,7 +39,7 @@ variables
 		14: Spectating
 }
 
-disabled rule("DEBUG: Enable this for Debug Mode")
+rule("DEBUG: Enable this for Debug Mode")
 {
 	event
 	{
@@ -238,8 +238,10 @@ rule("DEBUG: Destroy Dummy Player #2")
 	actions
 	{
 		Destroy Dummy Bot(All Teams, 1);
+		Destroy Dummy Bot(All Teams, 2);
 		Wait(5, Ignore Condition);
 		Create Dummy Bot(Hero(McCree), All Teams, 1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ashe), All Teams, 2, Vector(0, 0, 0), Vector(0, 0, 0));
 	}
 }
 
@@ -570,6 +572,10 @@ rule("ON STATE 1: Teleport Player To Lobby")
 		Event Player.TimeSpentWaiting = 0;
 		Chase Player Variable At Rate(Event Player, TimeSpentWaiting, 9999, 1, None);
 		Set Status(Event Player, Null, Phased Out, 9999);
+		Allow Button(Event Player, Primary Fire);
+		Allow Button(Event Player, Secondary Fire);
+		Allow Button(Event Player, Ability 1);
+		Allow Button(Event Player, Ability 2);
 		If(Hero Of(Event Player) == Hero(Tracer));
 			Disallow Button(Event Player, Ability 2);
 		End;
@@ -600,29 +606,29 @@ rule("ON STATE 3: Teleport / Reset Player For Match")
 	{
 		Teleport(Event Player, Global.LobbyPosition + Vector(Random Real(-3, 3), 100, Random Real(-3, 3)));
 		Preload Hero(Event Player, Hero(Brigitte));
-		Wait(0.250, Ignore Condition);
+		Wait(0.250, Abort When False);
 		Start Forcing Player To Be Hero(Event Player, Hero(Brigitte));
 		Wait(0.016, Ignore Condition);
 		Start Forcing Player To Be Hero(Event Player, Global.HeroPoolArray[5 * Event Player.ActiveDuelZone + Event Player.MatchLosses]);
 		Stop Forcing Player To Be Hero(Event Player);
+		Abort If Condition Is False;
 		Disallow Button(Event Player, Primary Fire);
 		Disallow Button(Event Player, Secondary Fire);
 		Disallow Button(Event Player, Ability 1);
 		Disallow Button(Event Player, Ability 2);
 		Teleport(Event Player, Global.DuelZoneSpawnList[Event Player.ActiveDuelZone * 2 + Event Player.PlayerNumberOffset]);
-		Wait(0.100, Ignore Condition);
+		Wait(0.100, Abort When False);
 		Set Facing(Event Player, Direction Towards(Eye Position(Event Player),
 			Global.DuelZoneSpawnList[Event Player.ActiveDuelZone * 2 + Event Player.EnemyPlayerNumberOffset]), To World);
-		Event Player.PlayerState = 4;
 		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
 		Small Message(Event Player, 3);
-		Wait(1, Ignore Condition);
+		Wait(1, Abort When False);
 		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
 		Small Message(Event Player, 2);
-		Wait(1, Ignore Condition);
+		Wait(1, Abort When False);
 		Play Effect(Event Player, Buff Explosion Sound, White, Event Player, 50);
 		Small Message(Event Player, 1);
-		Wait(1, Ignore Condition);
+		Wait(1, Abort When False);
 		Play Effect(Event Player, Ring Explosion Sound, White, Event Player, 86);
 		Small Message(Event Player, Custom String("FIGHT!"));
 		Allow Button(Event Player, Primary Fire);
@@ -630,6 +636,7 @@ rule("ON STATE 3: Teleport / Reset Player For Match")
 		Allow Button(Event Player, Ability 1);
 		Allow Button(Event Player, Ability 2);
 		Set Status(Event Player, Null, Phased Out, 0);
+		Event Player.PlayerState = 4;
 	}
 }
 
@@ -723,12 +730,14 @@ rule("ON STATE 5: Loser Won't Spawn")
 	{
 		Is Game In Progress == True;
 		Event Player.PlayerState == 5;
+		Is Alive(Event Player) == False;
 	}
 
 	actions
 	{
 		Wait(10, Abort When False);
 		Event Player.PlayerState = 6;
+		Resurrect(Event Player);
 	}
 }
 
@@ -829,18 +838,36 @@ rule("ON: Run Matchmaker When Clock is 0")
 			Global.TempPlayerTwo = Global.TempWaitingPlayersList[0];
 		End;
 		Global.TempAvailableDuelZones = Empty Array;
-		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 0)) != 0, 1);
-		Modify Global Variable(TempAvailableDuelZones, Append To Array, 0);
-		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 1)) != 0, 1);
-		Modify Global Variable(TempAvailableDuelZones, Append To Array, 1);
-		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 2)) != 0, 1);
-		Modify Global Variable(TempAvailableDuelZones, Append To Array, 2);
-		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 3)) != 0, 1);
-		Modify Global Variable(TempAvailableDuelZones, Append To Array, 3);
-		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 4)) != 0, 1);
-		Modify Global Variable(TempAvailableDuelZones, Append To Array, 4);
-		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 5)) != 0, 1);
-		Modify Global Variable(TempAvailableDuelZones, Append To Array, 5);
+		If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 0)) == 0);
+			Modify Global Variable(TempAvailableDuelZones, Append To Array, 0);
+		End;
+		If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 1)) == 0);
+			Modify Global Variable(TempAvailableDuelZones, Append To Array, 1);
+		End;
+		If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 2)) == 0);
+			Modify Global Variable(TempAvailableDuelZones, Append To Array, 2);
+		End;
+		If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 3)) == 0);
+			Modify Global Variable(TempAvailableDuelZones, Append To Array, 3);
+		End;
+		If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 4)) == 0);
+			Modify Global Variable(TempAvailableDuelZones, Append To Array, 4);
+		End;
+		If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 5)) == 0);
+			Modify Global Variable(TempAvailableDuelZones, Append To Array, 5);
+		End;
+		disabled Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 0)) != 0, 1);
+		disabled Modify Global Variable(TempAvailableDuelZones, Append To Array, 0);
+		disabled Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 1)) != 0, 1);
+		disabled Modify Global Variable(TempAvailableDuelZones, Append To Array, 1);
+		disabled Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 2)) != 0, 1);
+		disabled Modify Global Variable(TempAvailableDuelZones, Append To Array, 2);
+		disabled Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 3)) != 0, 1);
+		disabled Modify Global Variable(TempAvailableDuelZones, Append To Array, 3);
+		disabled Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 4)) != 0, 1);
+		disabled Modify Global Variable(TempAvailableDuelZones, Append To Array, 4);
+		disabled Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 5)) != 0, 1);
+		disabled Modify Global Variable(TempAvailableDuelZones, Append To Array, 5);
 		Global.TempAvailableDuelZones = Random Value In Array(Global.TempAvailableDuelZones);
 		Global.TempPlayerOne.ActiveDuelZone = Global.TempAvailableDuelZones;
 		Global.TempPlayerTwo.ActiveDuelZone = Global.TempAvailableDuelZones;
@@ -966,36 +993,72 @@ rule("ON: Player Disconnected")
 
 	actions
 	{
+		disabled Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 0);
+		disabled Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		disabled Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		disabled Global.TempOrphanPlayers.PlayerState = 1;
+		disabled Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		disabled Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 1);
+		disabled Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		disabled Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		disabled Global.TempOrphanPlayers.PlayerState = 1;
+		disabled Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		disabled Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 2);
+		disabled Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		disabled Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		disabled Global.TempOrphanPlayers.PlayerState = 1;
+		disabled Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		disabled Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 3);
+		disabled Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		disabled Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		disabled Global.TempOrphanPlayers.PlayerState = 1;
+		disabled Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		disabled Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 4);
+		disabled Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		disabled Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		disabled Global.TempOrphanPlayers.PlayerState = 1;
+		disabled Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		disabled Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 5);
+		disabled Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
+		disabled Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+		disabled Global.TempOrphanPlayers.PlayerState = 1;
+		disabled Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
 		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 0);
-		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
-		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
-		Global.TempOrphanPlayers.PlayerState = 1;
-		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		If(Count Of(Global.TempOrphanPlayers) == 1);
+			Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+			Global.TempOrphanPlayers.PlayerState = 1;
+			Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		End;
 		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 1);
-		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
-		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
-		Global.TempOrphanPlayers.PlayerState = 1;
-		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		If(Count Of(Global.TempOrphanPlayers) == 1);
+			Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+			Global.TempOrphanPlayers.PlayerState = 1;
+			Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		End;
 		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 2);
-		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
-		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
-		Global.TempOrphanPlayers.PlayerState = 1;
-		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		If(Count Of(Global.TempOrphanPlayers) == 1);
+			Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+			Global.TempOrphanPlayers.PlayerState = 1;
+			Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		End;
 		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 3);
-		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
-		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
-		Global.TempOrphanPlayers.PlayerState = 1;
-		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		If(Count Of(Global.TempOrphanPlayers) == 1);
+			Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+			Global.TempOrphanPlayers.PlayerState = 1;
+			Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		End;
 		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 4);
-		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
-		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
-		Global.TempOrphanPlayers.PlayerState = 1;
-		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		If(Count Of(Global.TempOrphanPlayers) == 1);
+			Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+			Global.TempOrphanPlayers.PlayerState = 1;
+			Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		End;
 		Global.TempOrphanPlayers = Filtered Array(All Players(All Teams), Current Array Element.ActiveDuelZone == 5);
-		Skip If(Count Of(Global.TempOrphanPlayers) != 1, 3);
-		Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
-		Global.TempOrphanPlayers.PlayerState = 1;
-		Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		If(Count Of(Global.TempOrphanPlayers) == 1);
+			Set Player Score(Global.TempOrphanPlayers, Max(Min(Score Of(Global.TempOrphanPlayers) + 1, 5), 0));
+			Global.TempOrphanPlayers.PlayerState = 1;
+			Enable Built-In Game Mode Respawning(Global.TempOrphanPlayers);
+		End;
 	}
 }
 
