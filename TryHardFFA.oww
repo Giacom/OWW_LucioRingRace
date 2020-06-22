@@ -1,0 +1,105 @@
+variables
+{
+	global:
+		0: HEAL_AMOUNT
+}
+
+rule("CONFIG")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.HEAL_AMOUNT = 100;
+	}
+}
+
+rule("Insta Start")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == False;
+		Is Assembling Heroes == True;
+	}
+
+	actions
+	{
+		Set Match Time(5);
+	}
+}
+
+rule("Set Match Timer To 60 minutes")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Is Assembling Heroes == False;
+	}
+
+	actions
+	{
+		Set Match Time(3599);
+	}
+}
+
+rule("Heal on Kill")
+{
+	event
+	{
+		Player Dealt Final Blow;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Heal(Event Player, Null, Global.HEAL_AMOUNT);
+	}
+}
+
+rule("Disable Default Functions")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Built-In Game Mode Completion;
+		Disable Built-In Game Mode Announcer;
+		Disable Built-In Game Mode Music;
+	}
+}
+
+rule("Match Timer Reaches 0")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+		Match Time <= 0;
+	}
+
+	actions
+	{
+		Declare Player Victory(Last Of(Sorted Array(All Players(All Teams), Score Of(Current Array Element))));
+	}
+}
