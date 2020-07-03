@@ -1,3 +1,80 @@
+settings
+{
+	main
+	{
+		Description: "Reverse Lucio Tag v1.2 - By Giacomand Latest code at: https://workshop.elohell.gg/uWdRA18zH6QG3EE"
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Max Spectators: 6
+		Return To Lobby: Never
+	}
+
+	modes
+	{
+		disabled Control
+		{
+			Limit Valid Control Points: First
+		}
+
+		Deathmatch
+		{
+			Game Length In Minutes: 15
+			Score To Win: 25
+
+			disabled maps
+			{
+				Black Forest
+				Blizzard World Winter
+				Château Guillard Halloween
+				Ecopoint: Antarctica
+				Eichenwalde Halloween
+				Hanamura
+				Hollywood Halloween
+				King's Row
+				Lijiang Control Center
+				Lijiang Garden
+				Lijiang Night Market
+				Workshop Chamber
+				Workshop Expanse
+				Workshop Expanse Night
+				Workshop Island
+				Workshop Island Night
+			}
+		}
+
+		General
+		{
+			Allow Hero Switching: Off
+			Game Mode Start: Immediately
+			Hero Limit: Off
+			Respawn As Random Hero: On
+			Respawn Time Scalar: 0%
+			Spawn Health Packs: Disabled
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Lúcio
+			{
+				Movement Speed: 150%
+				Primary Fire: Off
+				Ultimate Generation - Passive Sound Barrier: 250%
+			}
+
+			enabled heroes
+			{
+				Lúcio
+			}
+		}
+	}
+}
+
 variables
 {
 	global:
@@ -15,50 +92,38 @@ rule("Setup")
 	actions
 	{
 		Disable Built-In Game Mode Scoring;
-		Create Icon(Filtered Array(All Players(All Teams), And(Compare(Global Variable(Tagged), !=, Null), Compare(Global Variable(Tagged),
-			!=, Current Array Element))), Add(Position Of(Global Variable(Tagged)), Vector(0, 1.500, 0)), Flag, Visible To and Position,
-			Green, True);
-		Create Effect(Filtered Array(All Players(All Teams), Compare(Global Variable(Tagged), !=, Null)), Cloud, Green, Add(Position Of(
-			Global Variable(Tagged)), Vector(0, -0.300, 0)), 1, Visible To Position and Radius);
-		Create HUD Text(All Players(All Teams), Null, Custom String("Instructions", Null, Null, Null), Custom String(
-			"Punch to tag. Use sound barrier to block tags.", Null, Null, Null), Left, 0, White, Yellow, White, Visible To and String,
-			Default Visibility);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(0, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(0, All Teams)))), Add(Position Of(Players In Slot(0, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(1, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(1, All Teams)))), Add(Position Of(Players In Slot(1, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(2, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(2, All Teams)))), Add(Position Of(Players In Slot(2, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(3, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(3, All Teams)))), Add(Position Of(Players In Slot(3, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(4, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(4, All Teams)))), Add(Position Of(Players In Slot(4, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(5, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(5, All Teams)))), Add(Position Of(Players In Slot(5, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(6, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(6, All Teams)))), Add(Position Of(Players In Slot(6, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(7, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(7, All Teams)))), Add(Position Of(Players In Slot(7, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(8, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(8, All Teams)))), Add(Position Of(Players In Slot(8, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(9, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(9, All Teams)))), Add(Position Of(Players In Slot(9, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(10, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(10, All Teams)))), Add(Position Of(Players In Slot(10, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
-		Create Icon(Filtered Array(Global Variable(Tagged), And(Compare(Players In Slot(11, All Teams), !=, Null), Compare(Global Variable(
-			Tagged), !=, Players In Slot(11, All Teams)))), Add(Position Of(Players In Slot(11, All Teams)), Vector(0, 1.500, 0)),
-			Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(All Players(All Teams), Global.Tagged != Null && Global.Tagged != Current Array Element), Position Of(
+			Global.Tagged) + Vector(0, 1.500, 0), Flag, Visible To and Position, Green, True);
+		Create Effect(Filtered Array(All Players(All Teams), Global.Tagged != Null), Cloud, Green, Position Of(Global.Tagged) + Vector(0,
+			-0.300, 0), 1, Visible To Position and Radius);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Instructions"), Custom String(
+			"Punch to tag. Use sound barrier to block tags."), Left, 0, White, Yellow, White, Visible To and String, Default Visibility);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(0, All Teams) != Null && Global.Tagged != Players In Slot(0, All Teams)),
+			Position Of(Players In Slot(0, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(1, All Teams) != Null && Global.Tagged != Players In Slot(1, All Teams)),
+			Position Of(Players In Slot(1, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(2, All Teams) != Null && Global.Tagged != Players In Slot(2, All Teams)),
+			Position Of(Players In Slot(2, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(3, All Teams) != Null && Global.Tagged != Players In Slot(3, All Teams)),
+			Position Of(Players In Slot(3, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(4, All Teams) != Null && Global.Tagged != Players In Slot(4, All Teams)),
+			Position Of(Players In Slot(4, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(5, All Teams) != Null && Global.Tagged != Players In Slot(5, All Teams)),
+			Position Of(Players In Slot(5, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(6, All Teams) != Null && Global.Tagged != Players In Slot(6, All Teams)),
+			Position Of(Players In Slot(6, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(7, All Teams) != Null && Global.Tagged != Players In Slot(7, All Teams)),
+			Position Of(Players In Slot(7, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(8, All Teams) != Null && Global.Tagged != Players In Slot(8, All Teams)),
+			Position Of(Players In Slot(8, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(9, All Teams) != Null && Global.Tagged != Players In Slot(9, All Teams)),
+			Position Of(Players In Slot(9, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2, True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(10, All Teams) != Null && Global.Tagged != Players In Slot(10,
+			All Teams)), Position Of(Players In Slot(10, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2,
+			True);
+		Create Icon(Filtered Array(Global.Tagged, Players In Slot(11, All Teams) != Null && Global.Tagged != Players In Slot(11,
+			All Teams)), Position Of(Players In Slot(11, All Teams)) + Vector(0, 1.500, 0), Arrow: Down, Visible To and Position, Team 2,
+			True);
 	}
 }
 
@@ -76,11 +141,10 @@ rule("Game started")
 
 	actions
 	{
-		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Current Array Element, ==, Global Variable(Tagged))), Null, Null,
-			Icon String(Flag), Right, 0, Green, Green, Green, Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Current Array Element, !=, Global Variable(Tagged))), Null, Null,
-			String("{0} {1}", Global Variable(Tagged), Icon String(Skull), Null), Right, 0, White, White, White, Visible To and String,
-			Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Current Array Element == Global.Tagged), Null, Null, Icon String(Flag),
+			Right, 0, Green, Green, Green, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Current Array Element != Global.Tagged), Null, Null, String("{0} {1}",
+			Global.Tagged, Icon String(Skull)), Right, 0, White, White, White, Visible To and String, Default Visibility);
 	}
 }
 
@@ -93,13 +157,13 @@ rule("No one is tagged, give it to someone")
 
 	conditions
 	{
-		Entity Exists(Global Variable(Tagged)) == False;
+		Entity Exists(Global.Tagged) == False;
 		Is Game In Progress == True;
 	}
 
 	actions
 	{
-		Set Global Variable(Tagged, Random Value In Array(All Living Players(All Teams)));
+		Global.Tagged = Random Value In Array(All Living Players(All Teams));
 		Wait(1, Ignore Condition);
 		Loop If Condition Is True;
 	}
@@ -116,16 +180,16 @@ rule("Tagged player took melee damage (HACKY)")
 
 	conditions
 	{
-		Global Variable(Tagged) == Event Player;
+		Global.Tagged == Event Player;
 		Event Damage == 30;
 	}
 
 	actions
 	{
-		Skip If(Compare(Max Health(Event Player), >, 200), 2);
-		Set Global Variable(Tagged, Attacker);
+		Skip If(Max Health(Event Player) > 200, 2);
+		Global.Tagged = Attacker;
 		Abort;
-		Small Message(Attacker, Custom String("BLOCKED BY BARRIER", Null, Null, Null));
+		Small Message(Attacker, Custom String("BLOCKED BY BARRIER"));
 	}
 }
 
@@ -140,15 +204,14 @@ rule("Tagged player died somehow")
 
 	conditions
 	{
-		Global Variable(Tagged) == Event Player;
+		Global.Tagged == Event Player;
 	}
 
 	actions
 	{
-		Set Global Variable(Tagged, Attacker);
-		Skip If(And(Compare(Attacker, !=, Event Player), Entity Exists(Attacker)), 1);
-		Set Global Variable(Tagged, Random Value In Array(Filtered Array(All Living Players(All Teams), Compare(Current Array Element, !=,
-			Global Variable(Tagged)))));
+		Global.Tagged = Attacker;
+		Skip If(Attacker != Event Player && Entity Exists(Attacker), 1);
+		Global.Tagged = Random Value In Array(Filtered Array(All Living Players(All Teams), Current Array Element != Global.Tagged));
 	}
 }
 
@@ -161,13 +224,13 @@ rule("Tagged player gets a point")
 
 	conditions
 	{
-		Global Variable(Tagged) != Null;
+		Global.Tagged != Null;
 		Number of Players(All Teams) > 1;
 	}
 
 	actions
 	{
-		Modify Player Score(Global Variable(Tagged), 1);
+		Modify Player Score(Global.Tagged, 1);
 		Wait(5, Abort When False);
 		Loop If Condition Is True;
 	}
@@ -198,17 +261,17 @@ rule("New Tagged")
 
 	conditions
 	{
-		Global Variable(Tagged) != Global Variable(LastTagged);
-		Entity Exists(Global Variable(Tagged)) == True;
+		Global.Tagged != Global.LastTagged;
+		Entity Exists(Global.Tagged) == True;
 	}
 
 	actions
 	{
-		Big Message(Filtered Array(All Players(All Teams), Compare(Current Array Element, !=, Global Variable(Tagged))), Custom String(
-			"{0} IS IT!", Global Variable(Tagged), Null, Null));
-		Big Message(Global Variable(Tagged), Custom String("YOU ARE IT!", Null, Null, Null));
-		Play Effect(All Players(All Teams), Ring Explosion Sound, White, Global Variable(Tagged), 75);
-		Set Global Variable(LastTagged, Global Variable(Tagged));
+		Big Message(Filtered Array(All Players(All Teams), Current Array Element != Global.Tagged), Custom String("{0} IS IT!",
+			Global.Tagged));
+		Big Message(Global.Tagged, Custom String("YOU ARE IT!"));
+		Play Effect(All Players(All Teams), Ring Explosion Sound, White, Global.Tagged, 75);
+		Global.LastTagged = Global.Tagged;
 	}
 }
 
@@ -223,11 +286,11 @@ rule("Tagged player left")
 
 	conditions
 	{
-		Global Variable(Tagged) == Event Player;
+		Global.Tagged == Event Player;
 	}
 
 	actions
 	{
-		Set Global Variable(Tagged, Null);
+		Global.Tagged = Null;
 	}
 }
