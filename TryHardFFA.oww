@@ -1,3 +1,90 @@
+settings
+{
+	main
+	{
+		Description: "24/7 TryHard FFA by /u/Giacomand"
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Match Voice Chat: Enabled
+		Max Spectators: 4
+		Return To Lobby: Never
+	}
+
+	modes
+	{
+		Deathmatch
+		{
+			Game Length In Minutes: 15
+			Score To Win: 50
+
+			enabled maps
+			{
+				Château Guillard
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Immediately
+			Hero Limit: Off
+			Respawn Time Scalar: 66%
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Baptiste
+			{
+				Immortality Field: Off
+			}
+
+			Bastion
+			{
+				Reconfigure: Off
+			}
+
+			Mei
+			{
+				Primary Fire: Off
+			}
+
+			Sombra
+			{
+				Hack: Off
+			}
+
+			Torbjörn
+			{
+				Deploy Turret: Off
+			}
+
+			disabled heroes
+			{
+				Brigitte
+				D.Va
+				Doomfist
+				Junkrat
+				Mercy
+				Moira
+				Orisa
+				Reaper
+				Reinhardt
+				Roadhog
+				Sigma
+				Symmetra
+				Winston
+				Wrecking Ball
+				Zarya
+			}
+		}
+	}
+}
+
 variables
 {
 	global:
