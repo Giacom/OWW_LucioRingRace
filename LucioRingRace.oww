@@ -1,3 +1,75 @@
+settings
+{
+	main
+	{
+		Description: "v1.9: Game mode for Lucios to race to the finish line with a little bit of wallriding skill! - Initially created by waycoolway - Heavily updated by Giacomand - Additional maps by Fahzix - https://workshop.elohell.gg/uOi5fgHDI/"
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Match Voice Chat: Enabled
+		Return To Lobby: Never
+	}
+
+	modes
+	{
+		disabled Deathmatch
+		{
+			Self Initiated Respawn: Off
+		}
+
+		disabled Hybrid
+		{
+			Capture Speed Modifier: 10%
+			Payload Speed Modifier: 10%
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Eichenwalde
+				Havana
+				Hollywood
+				King's Row
+				Lijiang Tower
+				Nepal
+				Numbani
+				Temple of Anubis
+			}
+		}
+
+		General
+		{
+			Allow Hero Switching: Off
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Respawn Time Scalar: 0%
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Lúcio
+			{
+				Healing Received: 500%
+				Health: 500%
+				Primary Fire: Off
+				Soundwave: Off
+				Ultimate Ability Sound Barrier: Off
+			}
+
+			enabled heroes
+			{
+				Lúcio
+			}
+		}
+	}
+}
+
 variables
 {
 	global:
@@ -37,7 +109,7 @@ disabled rule("DEBUG: Enable Debug? (Enable this rule to enable debug mode)")
 
 	actions
 	{
-		Set Global Variable(DebugEnabled, True);
+		Global.DebugEnabled = True;
 	}
 }
 
@@ -50,20 +122,19 @@ rule("DEBUG: Setup Global Debug")
 
 	conditions
 	{
-		Global Variable(DebugEnabled) == True;
+		Global.DebugEnabled == True;
 	}
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), String("{0}: {1}", Custom String("No. Checkpoints In Play", Null, Null, Null), Count Of(
-			Global Variable(CheckpointList)), Null), Null, Null, Right, 0, White, White, White, Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), String("{0}: {1}", Custom String("No. Checkpoints In Planning Mode", Null, Null, Null),
-			Count Of(Global Variable(MapEditorCheckpointList)), Null), Null, Null, Right, 0, White, White, White, Visible To and String,
-			Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0}: {1}", Custom String("No. Checkpoints In Play"), Count Of(
+			Global.CheckpointList)), Null, Null, Right, 0, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0}: {1}", Custom String("No. Checkpoints In Planning Mode"), Count Of(
+			Global.MapEditorCheckpointList)), Null, Null, Right, 0, White, White, White, Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String(
-			"Primary Fire: Select new checkpoint location - Secondary Fire: Save selected checkpoint location", Null, Null, Null),
-			Custom String("Soundwave: Undo last save - Ultimate: Put saved checkpoints into play - Ult Status: Toggle save mode", Null,
-			Null, Null), Right, 0, White, White, White, Visible To and String, Default Visibility);
+			"Primary Fire: Select new checkpoint location - Secondary Fire: Save selected checkpoint location"), Custom String(
+			"Soundwave: Undo last save - Ultimate: Put saved checkpoints into play - Ult Status: Toggle save mode"), Right, 0, White,
+			White, White, Visible To and String, Default Visibility);
 		Set Match Time(3599);
 	}
 }
@@ -79,29 +150,29 @@ rule("DEBUG: Label Rings")
 
 	conditions
 	{
-		Global Variable(DebugEnabled) == True;
+		Global.DebugEnabled == True;
 	}
 
 	actions
 	{
-		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, CurrentCheckpointID), -2.000), Null, Null),
-			Value In Array(Global Variable(CheckpointList), Add(Player Variable(Event Player, CurrentCheckpointID), -3.000)), 2,
-			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
-		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, CurrentCheckpointID), -1.000), Null, Null),
-			Value In Array(Global Variable(CheckpointList), Add(Player Variable(Event Player, CurrentCheckpointID), -2.000)), 2,
-			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
-		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, CurrentCheckpointID), 0), Null, Null),
-			Value In Array(Global Variable(CheckpointList), Add(Player Variable(Event Player, CurrentCheckpointID), -1.000)), 2,
-			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
-		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, CurrentCheckpointID), 1), Null, Null),
-			Value In Array(Global Variable(CheckpointList), Add(Player Variable(Event Player, CurrentCheckpointID), 0)), 2,
-			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
-		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, CurrentCheckpointID), 2), Null, Null),
-			Value In Array(Global Variable(CheckpointList), Add(Player Variable(Event Player, CurrentCheckpointID), 1)), 2,
-			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
-		Create In-World Text(Event Player, String("#{0}", Add(Player Variable(Event Player, CurrentCheckpointID), 3), Null, Null),
-			Value In Array(Global Variable(CheckpointList), Add(Player Variable(Event Player, CurrentCheckpointID), 2)), 2,
-			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create In-World Text(Event Player, String("#{0}", Event Player.CurrentCheckpointID + -2),
+			Global.CheckpointList[Event Player.CurrentCheckpointID + -3], 2, Clip Against Surfaces, Visible To Position and String, White,
+			Default Visibility);
+		Create In-World Text(Event Player, String("#{0}", Event Player.CurrentCheckpointID + -1),
+			Global.CheckpointList[Event Player.CurrentCheckpointID + -2], 2, Clip Against Surfaces, Visible To Position and String, White,
+			Default Visibility);
+		Create In-World Text(Event Player, String("#{0}", Event Player.CurrentCheckpointID + 0),
+			Global.CheckpointList[Event Player.CurrentCheckpointID + -1], 2, Clip Against Surfaces, Visible To Position and String, White,
+			Default Visibility);
+		Create In-World Text(Event Player, String("#{0}", Event Player.CurrentCheckpointID + 1),
+			Global.CheckpointList[Event Player.CurrentCheckpointID + 0], 2, Clip Against Surfaces, Visible To Position and String, White,
+			Default Visibility);
+		Create In-World Text(Event Player, String("#{0}", Event Player.CurrentCheckpointID + 2),
+			Global.CheckpointList[Event Player.CurrentCheckpointID + 1], 2, Clip Against Surfaces, Visible To Position and String, White,
+			Default Visibility);
+		Create In-World Text(Event Player, String("#{0}", Event Player.CurrentCheckpointID + 3),
+			Global.CheckpointList[Event Player.CurrentCheckpointID + 2], 2, Clip Against Surfaces, Visible To Position and String, White,
+			Default Visibility);
 	}
 }
 
@@ -116,20 +187,20 @@ rule("DEBUG: Display Coordinates")
 
 	conditions
 	{
-		Global Variable(DebugEnabled) == True;
+		Global.DebugEnabled == True;
 	}
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Null, Event Player, Player Variable(Event Player, NewCheckpointLocation), Left, 0, White,
-			Blue, White, Visible To and String, Default Visibility);
-		Set Global Variable(MapEditorCheckpointList, Empty Array);
-		Create HUD Text(Event Player, Null, Custom String("Saving Mode:", Null, Null, Null), Player Variable(Event Player, InSavingMode),
-			Right, 10, Red, Red, White, Visible To and String, Default Visibility);
-		Set Player Variable(Event Player, InSavingMode, False);
-		Set Player Variable(Event Player, NewCheckpointLocation, Vector(0, 0, 0));
-		Set Player Variable(Event Player, D, Vector(0, 0, 0));
-		Set Player Variable(Event Player, E, Vector(0, 0, 0));
+		Create HUD Text(All Players(All Teams), Null, Event Player, Event Player.NewCheckpointLocation, Left, 0, White, Blue, White,
+			Visible To and String, Default Visibility);
+		Global.MapEditorCheckpointList = Empty Array;
+		Create HUD Text(Event Player, Null, Custom String("Saving Mode:"), Event Player.InSavingMode, Right, 10, Red, Red, White,
+			Visible To and String, Default Visibility);
+		Event Player.InSavingMode = False;
+		Event Player.NewCheckpointLocation = Vector(0, 0, 0);
+		Event Player.D = Vector(0, 0, 0);
+		Event Player.E = Vector(0, 0, 0);
 	}
 }
 
@@ -145,26 +216,25 @@ rule("DEBUG - CREATE MODE: Coordinate Finding (Primary Fire)")
 	conditions
 	{
 		Is Button Held(Event Player, Primary Fire) == True;
-		Global Variable(DebugEnabled) == True;
-		Player Variable(Event Player, InSavingMode) == False;
+		Global.DebugEnabled == True;
+		Event Player.InSavingMode == False;
 	}
 
 	actions
 	{
-		Set Player Variable(Event Player, D, Ray Cast Hit Position(Eye Position(Event Player), Add(Multiply(Facing Direction Of(
-			Event Player), 1000), Position Of(Event Player)), Empty Array, Event Player, True));
-		Set Player Variable(Event Player, D, Vector(Round To Integer(X Component Of(Player Variable(Event Player, D)), To Nearest),
-			Round To Integer(Y Component Of(Player Variable(Event Player, D)), To Nearest), Round To Integer(Z Component Of(
-			Player Variable(Event Player, D)), To Nearest)));
-		Set Player Variable(Event Player, G, Ray Cast Hit Normal(Eye Position(Event Player), Add(Multiply(Facing Direction Of(
-			Event Player), 1000), Position Of(Event Player)), Empty Array, Event Player, True));
-		Skip If(Compare(Player Variable(Event Player, D), ==, Player Variable(Event Player, E)), 3);
-		Set Player Variable(Event Player, NewCheckpointLocation, Player Variable(Event Player, D));
-		Set Player Variable(Event Player, E, Player Variable(Event Player, D));
+		Event Player.D = Ray Cast Hit Position(Eye Position(Event Player), Facing Direction Of(Event Player) * 1000 + Position Of(
+			Event Player), Empty Array, Event Player, True);
+		Event Player.D = Vector(Round To Integer(X Component Of(Event Player.D), To Nearest), Round To Integer(Y Component Of(
+			Event Player.D), To Nearest), Round To Integer(Z Component Of(Event Player.D), To Nearest));
+		Event Player.G = Ray Cast Hit Normal(Eye Position(Event Player), Facing Direction Of(Event Player) * 1000 + Position Of(
+			Event Player), Empty Array, Event Player, True);
+		Skip If(Event Player.D == Event Player.E, 3);
+		Event Player.NewCheckpointLocation = Event Player.D;
+		Event Player.E = Event Player.D;
 		Skip(1);
-		Modify Player Variable(Event Player, NewCheckpointLocation, Add, Multiply(Player Variable(Event Player, G), 0.500));
-		Play Effect(All Players(All Teams), Good Explosion, White, Player Variable(Event Player, NewCheckpointLocation), 0.200);
-		Set Player Variable(Event Player, G, Vector(Round To Integer(0, Up), 0, 0));
+		Event Player.NewCheckpointLocation += Event Player.G * 0.500;
+		Play Effect(All Players(All Teams), Good Explosion, White, Event Player.NewCheckpointLocation, 0.200);
+		Event Player.G = Vector(Round To Integer(0, Up), 0, 0);
 	}
 }
 
@@ -179,17 +249,17 @@ rule("DEBUG - CREATE MODE: Save Ring (Secondary Fire)")
 
 	conditions
 	{
-		Global Variable(DebugEnabled) == True;
+		Global.DebugEnabled == True;
 		Is Button Held(Event Player, Secondary Fire) == True;
-		Array Contains(Global Variable(MapEditorCheckpointList), Player Variable(Event Player, NewCheckpointLocation)) == False;
-		Player Variable(Event Player, InSavingMode) == False;
+		Array Contains(Global.MapEditorCheckpointList, Event Player.NewCheckpointLocation) == False;
+		Event Player.InSavingMode == False;
 	}
 
 	actions
 	{
-		Modify Global Variable(MapEditorCheckpointList, Append To Array, Player Variable(Event Player, NewCheckpointLocation));
+		Modify Global Variable(MapEditorCheckpointList, Append To Array, Event Player.NewCheckpointLocation);
 		Play Effect(All Players(All Teams), Ring Explosion Sound, Green, Event Player, 75);
-		Big Message(Event Player, String("Saved", Null, Null, Null));
+		Big Message(Event Player, String("Saved"));
 		Wait(0.250, Ignore Condition);
 	}
 }
@@ -205,18 +275,17 @@ rule("DEBUG - CREATE MODE: Undo Ring (Interact)")
 
 	conditions
 	{
-		Global Variable(DebugEnabled) == True;
+		Global.DebugEnabled == True;
 		Is Button Held(Event Player, Interact) == True;
-		Player Variable(Event Player, InSavingMode) == False;
+		Event Player.InSavingMode == False;
 	}
 
 	actions
 	{
-		Modify Global Variable(MapEditorCheckpointList, Remove From Array By Index, Subtract(Count Of(Global Variable(
-			MapEditorCheckpointList)), 1));
+		Modify Global Variable(MapEditorCheckpointList, Remove From Array By Index, Count Of(Global.MapEditorCheckpointList) - 1);
 		Play Effect(All Players(All Teams), Explosion Sound, Green, Event Player, 75);
 		Wait(0.250, Ignore Condition);
-		Big Message(Event Player, String("Backward", Null, Null, Null));
+		Big Message(Event Player, String("Backward"));
 	}
 }
 
@@ -231,16 +300,16 @@ rule("DEBUG - CREATE MODE: Play Rings (Ultimate)")
 
 	conditions
 	{
-		Global Variable(DebugEnabled) == True;
+		Global.DebugEnabled == True;
 		Is Button Held(Event Player, Ultimate) == True;
-		Player Variable(Event Player, InSavingMode) == False;
+		Event Player.InSavingMode == False;
 	}
 
 	actions
 	{
 		Play Effect(All Players(All Teams), Buff Explosion Sound, Green, Event Player, 75);
-		Set Global Variable(CheckpointList, Global Variable(MapEditorCheckpointList));
-		Big Message(Event Player, String("Ready", Null, Null, Null));
+		Global.CheckpointList = Global.MapEditorCheckpointList;
+		Big Message(Event Player, String("Ready"));
 	}
 }
 
@@ -255,20 +324,19 @@ rule("DEBUG: Toggle Save Mode - Teleport to the rings so you can save them in th
 
 	conditions
 	{
-		Global Variable(DebugEnabled) == True;
+		Global.DebugEnabled == True;
 		Is Communicating(Event Player, Ultimate Status) == True;
 	}
 
 	actions
 	{
-		Set Player Variable(Event Player, InSavingMode, Not(Player Variable(Event Player, InSavingMode)));
-		Set Player Variable(Event Player, Y, 0);
-		Set Player Variable(Event Player, CurrentCheckpointID, 0);
-		Skip If(Compare(Player Variable(Event Player, InSavingMode), ==, False), 3);
-		Big Message(All Players(All Teams), String("{0} {1}", String("Save", Null, Null, Null), String("Status", Distance Between(Vector(0,
-			0, 0), Vector(0, 0, 0)), Null, Null), Null));
-		Start Camera(Event Player, Value In Array(Global Variable(CheckpointList), Player Variable(Event Player, Y)), Value In Array(
-			Global Variable(CheckpointList), Add(Player Variable(Event Player, Y), 1)), 0);
+		Event Player.InSavingMode = !Event Player.InSavingMode;
+		Event Player.Y = 0;
+		Event Player.CurrentCheckpointID = 0;
+		Skip If(Event Player.InSavingMode == False, 3);
+		Big Message(All Players(All Teams), String("{0} {1}", String("Save"), String("Status", Distance Between(Vector(0, 0, 0), Vector(0,
+			0, 0)))));
+		Start Camera(Event Player, Global.CheckpointList[Event Player.Y], Global.CheckpointList[Event Player.Y + 1], 0);
 		Skip(1);
 		Stop Camera(Event Player);
 	}
@@ -286,17 +354,16 @@ rule("DEBUG - SAVE MODE: Go to next ring")
 	conditions
 	{
 		Is Button Held(Event Player, Secondary Fire) == True;
-		Global Variable(DebugEnabled) == True;
-		Player Variable(Event Player, InSavingMode) == True;
-		Compare(Player Variable(Event Player, Y), <, Subtract(Count Of(Global Variable(CheckpointList)), 1)) == True;
+		Global.DebugEnabled == True;
+		Event Player.InSavingMode == True;
+		(Event Player.Y < Count Of(Global.CheckpointList) - 1) == True;
 	}
 
 	actions
 	{
-		Modify Player Variable(Event Player, Y, Add, 1);
-		Big Message(All Players(All Teams), String("{0} {1}", String("Checkpoint", Null, Null, Null), Add(Player Variable(Event Player, Y),
-			1), Null));
-		Set Player Variable(Event Player, CurrentCheckpointID, Player Variable(Event Player, Y));
+		Event Player.Y += 1;
+		Big Message(All Players(All Teams), String("{0} {1}", String("Checkpoint"), Event Player.Y + 1));
+		Event Player.CurrentCheckpointID = Event Player.Y;
 	}
 }
 
@@ -312,17 +379,16 @@ rule("DEBUG - SAVE MODE: Go to previous ring")
 	conditions
 	{
 		Is Button Held(Event Player, Primary Fire) == True;
-		Global Variable(DebugEnabled) == True;
-		Player Variable(Event Player, InSavingMode) == True;
-		Compare(Player Variable(Event Player, Y), >, 0) == True;
+		Global.DebugEnabled == True;
+		Event Player.InSavingMode == True;
+		(Event Player.Y > 0) == True;
 	}
 
 	actions
 	{
-		Modify Player Variable(Event Player, Y, Subtract, 1);
-		Big Message(All Players(All Teams), String("{0} {1}", String("Checkpoint", Null, Null, Null), Add(Player Variable(Event Player, Y),
-			1), Null));
-		Set Player Variable(Event Player, CurrentCheckpointID, Player Variable(Event Player, Y));
+		Event Player.Y -= 1;
+		Big Message(All Players(All Teams), String("{0} {1}", String("Checkpoint"), Event Player.Y + 1));
+		Event Player.CurrentCheckpointID = Event Player.Y;
 	}
 }
 
@@ -378,50 +444,50 @@ rule("MAP: Echeinwalde Rings by waycoolway")
 
 	actions
 	{
-		Set Global Variable(StartingPosition, Vector(127.090, 15.939, -13.110));
-		Set Global Variable(TeleportEntranceList, Empty Array);
-		Set Global Variable(TeleportExitList, Empty Array);
-		Set Global Variable(CheckpointList, Empty Array);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(125, 18, -25.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(125, 16, -40.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(127, 12.500, -55.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(115, 14, -60.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(108, 16, -31.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(90.500, 17.500, -19.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(89.500, 18.500, -53.000));
+		Global.StartingPosition = Vector(127.090, 15.939, -13.110);
+		Global.TeleportEntranceList = Empty Array;
+		Global.TeleportExitList = Empty Array;
+		Global.CheckpointList = Empty Array;
+		Modify Global Variable(CheckpointList, Append To Array, Vector(125, 18, -25));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(125, 16, -40));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(127, 12.500, -55));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(115, 14, -60));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(108, 16, -31));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(90.500, 17.500, -19));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(89.500, 18.500, -53));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(89.390, 21, -63.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(92.500, 14.500, -79.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(89.399, 10, -94.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(92.500, 14.500, -79));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(89.399, 10, -94));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(96, 8, -84.500));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(83.500, 4.500, -86.500));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(67, 6, -83.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(59, 7.500, -79.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(52, 7.500, -67.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(46.500, 9.500, -56.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(42.500, 11, -44.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(46.399, 13, -38.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(43, 15.500, -30.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(59, 7.500, -79));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(52, 7.500, -67));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(46.500, 9.500, -56));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(42.500, 11, -44));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(46.399, 13, -38));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(43, 15.500, -30));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(26, 3, -6.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(18, 5, -9.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(7, 9, -11.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-4.000, 9.500, -15.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-17.000, 10, -19.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-29.500, 14, -19.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-30.000, 15, -24.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-31.000, 19, -35.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-13.000, 19, -35.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(18, 5, -9));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(7, 9, -11));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-4, 9.500, -15));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-17, 10, -19));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-29.500, 14, -19));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-30, 15, -24));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-31, 19, -35.500));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-13, 19, -35));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(5.500, 16, -31.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(11.500, 14, -26.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(32, 21, -35.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(30, 23, -41.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(33, 25, -56.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(30, 26, -67.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(11.500, 14, -26));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(32, 21, -35));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(30, 23, -41));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(33, 25, -56));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(30, 26, -67));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(30, 24, -82.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(42, 21.500, -103.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(42, 21.500, -103));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(56, 24, -105.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(83, 20, -105.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(83, 20, -105));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(94.500, 22, -90.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(97.500, 16, -77.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(97.500, 16, -77));
 	}
 }
 
@@ -440,49 +506,49 @@ rule("MAP: Lijiang Tower Rings by Giacomand")
 
 	actions
 	{
-		Set Global Variable(StartingPosition, Vector(-65.501, 4.839, -32.011));
-		Set Global Variable(StartingPosition, Vector(-55.359, 266.173, 326.081));
-		Set Global Variable(StartingPosition, Vector(-64.012, 99.177, 162.586));
-		Set Global Variable(TeleportEntranceList, Empty Array);
-		Set Global Variable(TeleportExitList, Empty Array);
+		Global.StartingPosition = Vector(-65.501, 4.839, -32.011);
+		Global.StartingPosition = Vector(-55.359, 266.173, 326.081);
+		Global.StartingPosition = Vector(-64.012, 99.177, 162.586);
+		Global.TeleportEntranceList = Empty Array;
+		Global.TeleportExitList = Empty Array;
 		Modify Global Variable(TeleportEntranceList, Append To Array, Vector(53, 95, 149));
-		Modify Global Variable(TeleportExitList, Append To Array, Vector(-65.500, 5, -32.000));
-		Modify Global Variable(TeleportEntranceList, Append To Array, Vector(61, 21, -14.000));
+		Modify Global Variable(TeleportExitList, Append To Array, Vector(-65.500, 5, -32));
+		Modify Global Variable(TeleportEntranceList, Append To Array, Vector(61, 21, -14));
 		Modify Global Variable(TeleportExitList, Append To Array, Vector(-54.338, 266.176, 325.986));
-		Set Global Variable(CheckpointList, Empty Array);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-60.000, 100, 148));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-51.000, 102, 142));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-15.000, 97, 148));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-4.000, 99, 160));
+		Global.CheckpointList = Empty Array;
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-60, 100, 148));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-51, 102, 142));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-15, 97, 148));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-4, 99, 160));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(15, 97, 147));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(10, 97, 115));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-6.000, 97, 108));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-18.000, 96, 124));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-7.000, 99, 157));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-9.000, 104, 189));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-25.000, 98, 186));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-60.000, 99, 170));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-50.000, 102, 142));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-14.000, 99, 133));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-6, 97, 108));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-18, 96, 124));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-7, 99, 157));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-9, 104, 189));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-25, 98, 186));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-60, 99, 170));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-50, 102, 142));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-14, 99, 133));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(15, 98, 134));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(36, 97, 150));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(49, 96, 149));
-		Skip If(Compare(True, ==, False), 10000);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-53.000, 4, -34.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-39.000, 3, -42.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-12.000, 5, -54.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-8.000, 10, -70.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(10, 10, -70.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(13, 5, -44.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(21, 9, -24.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(15, 15, -10.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(22, 19, -50.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(34, 11, -68.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(44, 10, -48.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(46, 22, -15.000));
-		Skip If(Compare(True, ==, False), 10000);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-33.000, 269, 311));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-8.000, 270, 277));
+		Skip If(True == False, 10000);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-53, 4, -34));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-39, 3, -42));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-12, 5, -54));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-8, 10, -70));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(10, 10, -70));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(13, 5, -44));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(21, 9, -24));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(15, 15, -10));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(22, 19, -50));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(34, 11, -68));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(44, 10, -48));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(46, 22, -15));
+		Skip If(True == False, 10000);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-33, 269, 311));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-8, 270, 277));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(14, 277, 274));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(0, 283, 294));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(5, 275, 264));
@@ -491,9 +557,9 @@ rule("MAP: Lijiang Tower Rings by Giacomand")
 		Modify Global Variable(CheckpointList, Append To Array, Vector(35, 270, 338));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(24, 272, 341));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(9, 272, 319));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-5.000, 274, 293));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-5, 274, 293));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(0, 274, 280));
-		Skip If(Compare(True, ==, True), 10000);
+		Skip If(True == True, 10000);
 		Modify Global Variable(CheckpointList, Append To Array, Vector(0, 0, 0));
 	}
 }
@@ -513,48 +579,48 @@ rule("MAP: Temple of Anubis Rings by Giacomand")
 
 	actions
 	{
-		Set Global Variable(StartingPosition, Vector(-0.123, 1.217, -20.343));
-		Set Global Variable(TeleportEntranceList, Empty Array);
-		Set Global Variable(TeleportExitList, Empty Array);
-		Set Global Variable(CheckpointList, Empty Array);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-9.000, 1, -11.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-12.000, 2, 8));
+		Global.StartingPosition = Vector(-0.123, 1.217, -20.343);
+		Global.TeleportEntranceList = Empty Array;
+		Global.TeleportExitList = Empty Array;
+		Global.CheckpointList = Empty Array;
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-9, 1, -11));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-12, 2, 8));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-6.500, 2.500, 19));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(5, 6, 39));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-7.000, 11, 35));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-20.000, 12, 32));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-22.000, 12.500, 42));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-12.000, 13, 48));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-6.000, 13, 38));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-21.000, 13, 21));
-		Skip If(Compare(False, ==, True), 0);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-42.000, 12, 14));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-53.000, 13, 48));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-36.000, 13, 64));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-26.000, 14, 67));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-15.000, 15, 72));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-5.000, 12, 91));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-2.000, 11, 104));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-7, 11, 35));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-20, 12, 32));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-22, 12.500, 42));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-12, 13, 48));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-6, 13, 38));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-21, 13, 21));
+		Skip If(False == True, 0);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-42, 12, 14));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-53, 13, 48));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-36, 13, 64));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-26, 14, 67));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-15, 15, 72));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-5, 12, 91));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-2, 11, 104));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(4, 15, 116));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-8.000, 14, 114));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-24.000, 13, 120));
-		Skip If(Compare(False, ==, True), 0);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-18.000, 8, 127));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-27.000, 7, 121));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-23.000, 8, 91));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-38.000, 7, 63));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-53.000, 3, 43));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-47.000, 11, 33));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-36.000, 11, 51));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-15.000, 14, 72));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-8, 14, 114));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-24, 13, 120));
+		Skip If(False == True, 0);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-18, 8, 127));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-27, 7, 121));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-23, 8, 91));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-38, 7, 63));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-53, 3, 43));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-47, 11, 33));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-36, 11, 51));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-15, 14, 72));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(3.050, 13, 78));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(11, 16, 67));
-		Skip If(Compare(False, ==, True), 0);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-4.000, 18, 62));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-32.000, 2.500, 74));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-42.000, 6, 70));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-38.000, 10, 70));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-39.000, 20.500, 75));
+		Skip If(False == True, 0);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-4, 18, 62));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-32, 2.500, 74));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-42, 6, 70));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-38, 10, 70));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-39, 20.500, 75));
 	}
 }
 
@@ -573,42 +639,42 @@ rule("MAP: Kings Row Rings by Giacomand")
 
 	actions
 	{
-		Set Global Variable(StartingPosition, Vector(16.858, 7.173, 16.918));
-		Set Global Variable(TeleportEntranceList, Empty Array);
-		Set Global Variable(TeleportExitList, Empty Array);
-		Set Global Variable(CheckpointList, Empty Array);
+		Global.StartingPosition = Vector(16.858, 7.173, 16.918);
+		Global.TeleportEntranceList = Empty Array;
+		Global.TeleportExitList = Empty Array;
+		Global.CheckpointList = Empty Array;
 		Modify Global Variable(CheckpointList, Append To Array, Vector(8, 8, 14));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(3, 7, 5));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-5.000, 2, -13.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-15.000, 2, -25.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-32.000, 2, -27.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-58.000, 1, -30.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-71.000, 2, -24.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-85.000, 2, -20.000));
-		Skip If(Compare(False, ==, True), 0);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-94.000, 2, -16.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-116.000, 0, -1.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-127.000, 0, 14));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-139.000, -2.000, 31));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-149.000, 2, 42));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-158.000, 6, 40));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-147.000, 0, 34));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-138.000, 0, 29));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-127.000, 1, 14));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-115.000, 1, -1.000));
-		Skip If(Compare(False, ==, True), 0);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-102.000, 2, -13.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-94.000, 3, -17.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-90.000, 3, -34.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-82.000, 2, -45.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-73.000, 4, -46.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-62.000, 2, -46.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-53.000, 2, -39.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-49.000, 1, -28.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-38.000, 2, -22.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-19.000, 2, -26.000));
-		Skip If(Compare(False, ==, True), 0);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-6.000, 3, -25.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-5, 2, -13));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-15, 2, -25));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-32, 2, -27));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-58, 1, -30));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-71, 2, -24));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-85, 2, -20));
+		Skip If(False == True, 0);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-94, 2, -16));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-116, 0, -1));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-127, 0, 14));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-139, -2, 31));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-149, 2, 42));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-158, 6, 40));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-147, 0, 34));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-138, 0, 29));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-127, 1, 14));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-115, 1, -1));
+		Skip If(False == True, 0);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-102, 2, -13));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-94, 3, -17));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-90, 3, -34));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-82, 2, -45));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-73, 4, -46));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-62, 2, -46));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-53, 2, -39));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-49, 1, -28));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-38, 2, -22));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-19, 2, -26));
+		Skip If(False == True, 0);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-6, 3, -25));
 	}
 }
 
@@ -627,10 +693,10 @@ rule("MAP: Numbani Rings by Giacomand")
 
 	actions
 	{
-		Set Global Variable(StartingPosition, Vector(6.079, 1.002, -0.311));
-		Set Global Variable(TeleportEntranceList, Empty Array);
-		Set Global Variable(TeleportExitList, Empty Array);
-		Set Global Variable(CheckpointList, Empty Array);
+		Global.StartingPosition = Vector(6.079, 1.002, -0.311);
+		Global.TeleportEntranceList = Empty Array;
+		Global.TeleportExitList = Empty Array;
+		Global.CheckpointList = Empty Array;
 		Modify Global Variable(CheckpointList, Append To Array, Vector(19, 1.500, 12));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(55.003, 3.500, 15.991));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(70, 4, 4));
@@ -641,35 +707,35 @@ rule("MAP: Numbani Rings by Giacomand")
 		Modify Global Variable(CheckpointList, Append To Array, Vector(141.764, 11.047, 13.438));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(143.500, 8.999, 30.981));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(134.796, 10.016, 38.979));
-		Skip If(Compare(False, ==, True), 0);
+		Skip If(False == True, 0);
 		Modify Global Variable(CheckpointList, Append To Array, Vector(112.446, 11.171, 24.814));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(89.354, 1, 24.646));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(83.354, 10.008, 19.646));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(80, 2, -7.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(99, 1.500, -9.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(80, 2, -7));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(99, 1.500, -9));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(117, -1.500, 2));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(139, -2.500, 4));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(178, 0.500, -4.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(178, 0.500, -4));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(204, 2, 3));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(191.999, 2.140, 28.520));
-		Skip If(Compare(False, ==, True), 0);
+		Skip If(False == True, 0);
 		Modify Global Variable(CheckpointList, Append To Array, Vector(177, 7, 16));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(177, -1.000, 4.999));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(177, -1, 4.999));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(161.876, 0, 6.516));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(157.021, 2, 12.968));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(150.221, 4.992, 24.373));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(137.354, 9.007, 22.646));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(143.242, 9.049, 13.435));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(163, 6, -3.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(163, 6, -3));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(178, 5.500, 13));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(184, 1.500, 37));
-		Skip If(Compare(False, ==, True), 0);
+		Skip If(False == True, 0);
 		Modify Global Variable(CheckpointList, Append To Array, Vector(219, 1, 38));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(219, 1, 8));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(187.699, 2.022, 2.047));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(142.072, 0.000, 11.495));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(101, -0.500, 21));
-		Skip If(Compare(True, ==, False), 0);
+		Skip If(True == False, 0);
 	}
 }
 
@@ -688,27 +754,27 @@ rule("MAP: Havana Rings by Giacomand")
 
 	actions
 	{
-		Set Global Variable(StartingPosition, Vector(-4.271, 7.174, -93.840));
-		Set Global Variable(TeleportEntranceList, Empty Array);
-		Set Global Variable(TeleportExitList, Empty Array);
-		Set Global Variable(CheckpointList, Empty Array);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-7.000, 11, -73.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-20.000, 15, -65.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-42.000, 16, -55.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-62.000, 14, -44.000));
+		Global.StartingPosition = Vector(-4.271, 7.174, -93.840);
+		Global.TeleportEntranceList = Empty Array;
+		Global.TeleportExitList = Empty Array;
+		Global.CheckpointList = Empty Array;
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-7, 11, -73));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-20, 15, -65));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-42, 16, -55.500));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-62, 14, -44));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-78.449, 10.627, -55.551));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-68.000, 14, -72.500));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-64.000, 21, -57.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-44.000, 22, -55.500));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-68, 14, -72.500));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-64, 21, -57));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-44, 22, -55.500));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-29.981, 20, -47.195));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-34.000, 6.500, -27.000));
-		Skip If(Compare(False, ==, True), 0);
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-37.000, 14, -41.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-34, 6.500, -27));
+		Skip If(False == True, 0);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-37, 14, -41));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-29.040, 14.999, -54.979));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-25.000, 7.500, -87.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-25, 7.500, -87));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-19.109, 8.200, -90.249));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-23.874, 15.505, -62.000));
-		Skip If(Compare(False, ==, True), 0);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-23.874, 15.505, -62));
+		Skip If(False == True, 0);
 	}
 }
 
@@ -727,72 +793,72 @@ rule("MAP: Nepal Rings by Fahzix")
 
 	actions
 	{
-		Set Global Variable(StartingPosition, Vector(-37.771, 15.973, -61.176));
-		Set Global Variable(TeleportEntranceList, Empty Array);
-		Set Global Variable(TeleportExitList, Empty Array);
-		Set Global Variable(CheckpointList, Empty Array);
-		Modify Global Variable(TeleportEntranceList, Append To Array, Vector(-23.000, 17, -21.000));
-		Modify Global Variable(TeleportExitList, Append To Array, Vector(76, 130, -70.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-40.000, 16, -53.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-44.000, 14, -29.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-44.000, 16, -20.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-42.000, 18, 4));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-44.000, 17, 20));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-48.000, 21, 29));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-57.000, 25, 29));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-60.000, 29, 30));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-52.000, 30, 32));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-42.000, 32, 30));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-30.000, 28, 48));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-30.000, 28, 57));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-20.000, 30, 70));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-28.000, 31, 79));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-44.000, 30, 83));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-67.000, 2, 70));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-67.000, 8, 69));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-68.000, 13, 69));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-71.000, 17, 58));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-82.000, 22, 53));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-81.000, 15, 42));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-78.000, 4, 25));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-87.000, 5, 9));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-87.000, 6, -8.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-81.000, 11, -40.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-81.000, 17, -54.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-59.000, 16, -60.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-54.000, 21, -48.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-28.000, 22, -51.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-24.000, 22, -45.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-23.000, 16, -31.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(74, 132, -64.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(79, 132, -52.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(84, 134, -30.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(89, 135, -11.000));
+		Global.StartingPosition = Vector(-37.771, 15.973, -61.176);
+		Global.TeleportEntranceList = Empty Array;
+		Global.TeleportExitList = Empty Array;
+		Global.CheckpointList = Empty Array;
+		Modify Global Variable(TeleportEntranceList, Append To Array, Vector(-23, 17, -21));
+		Modify Global Variable(TeleportExitList, Append To Array, Vector(76, 130, -70));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-40, 16, -53));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-44, 14, -29));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-44, 16, -20));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-42, 18, 4));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-44, 17, 20));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-48, 21, 29));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-57, 25, 29));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-60, 29, 30));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-52, 30, 32));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-42, 32, 30));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-30, 28, 48));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-30, 28, 57));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-20, 30, 70));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-28, 31, 79));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-44, 30, 83));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-67, 2, 70));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-67, 8, 69));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-68, 13, 69));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-71, 17, 58));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-82, 22, 53));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-81, 15, 42));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-78, 4, 25));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-87, 5, 9));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-87, 6, -8));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-81, 11, -40));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-81, 17, -54));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-59, 16, -60));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-54, 21, -48));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-28, 22, -51));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-24, 22, -45));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-23, 16, -31));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(74, 132, -64));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(79, 132, -52));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(84, 134, -30));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(89, 135, -11));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(88, 135, 12));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(81, 137, 17));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(69, 136, 7));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(57, 133, -3.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(59, 140, -28.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(59, 148, -28.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(59, 148, -18.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(51, 151, -4.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(57, 133, -3));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(59, 140, -28));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(59, 148, -28));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(59, 148, -18));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(51, 151, -4));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(47, 150, 0));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(52, 150, 4));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(58, 154, -18.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(55, 155, -29.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-161.000, -97.000, -56.000));
-		Modify Global Variable(TeleportEntranceList, Append To Array, Vector(75, 147, -36.000));
-		Modify Global Variable(TeleportExitList, Append To Array, Vector(-170.000, -99.000, -68.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-165.000, -93.000, -41.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-184.000, -92.000, -26.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-204.000, -92.000, -12.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-210.000, -86.000, 10));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-209.000, -83.000, 23));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-197.000, -88.000, 33));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-185.000, -83.000, 41));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-175.000, -87.000, 55));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-168.000, -99.000, 68));
-		Skip If(Compare(False, ==, True), 0);
+		Modify Global Variable(CheckpointList, Append To Array, Vector(58, 154, -18));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(55, 155, -29));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-161, -97, -56));
+		Modify Global Variable(TeleportEntranceList, Append To Array, Vector(75, 147, -36));
+		Modify Global Variable(TeleportExitList, Append To Array, Vector(-170, -99, -68));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-165, -93, -41));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-184, -92, -26));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-204, -92, -12));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-210, -86, 10));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-209, -83, 23));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-197, -88, 33));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-185, -83, 41));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-175, -87, 55));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-168, -99, 68));
+		Skip If(False == True, 0);
 	}
 }
 
@@ -810,10 +876,10 @@ rule("MAP: Hollywood Rings by Giacomand")
 
 	actions
 	{
-		Set Global Variable(StartingPosition, Vector(12.292, 7.179, 49.685));
-		Set Global Variable(TeleportEntranceList, Empty Array);
-		Set Global Variable(TeleportExitList, Empty Array);
-		Set Global Variable(CheckpointList, Empty Array);
+		Global.StartingPosition = Vector(12.292, 7.179, 49.685);
+		Global.TeleportEntranceList = Empty Array;
+		Global.TeleportExitList = Empty Array;
+		Global.CheckpointList = Empty Array;
 		Modify Global Variable(CheckpointList, Append To Array, Vector(5.135, 10.807, 27.654));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-10.292, 13.958, 15.678));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-4.289, 13, -2.767));
@@ -824,13 +890,13 @@ rule("MAP: Hollywood Rings by Giacomand")
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-30.036, 10.069, -97.255));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-35.031, 4, -119.246));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-27.905, 7.002, -131.574));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-18.000, 11, -103.000));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(18, 3, -92.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-18, 11, -103));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(18, 3, -92));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(39.039, 5, -77.724));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(26.754, 9, -64.969));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-1.000, 8, -33.000));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-1, 8, -33));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(-3.632, 12.698, -4.971));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(-25.000, 3, 31));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(-25, 3, 31));
 	}
 }
 
@@ -843,18 +909,17 @@ rule("SETUP: Global Vars")
 
 	actions
 	{
-		Set Global Variable(A, False);
-		Set Global Variable(B, 5);
-		Set Global Variable(H, 0);
-		Set Global Variable(Y, Empty Array);
-		Set Global Variable(StartingPositionRadius, 4);
-		Create In-World Text(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, R), !=, True)), String(
-			"{0}: {1}", String("Try Again", Null, Null, Null), String("Crouching", Null, Null, Null), Null), Add(Multiply(
-			Direction Towards(Global Variable(StartingPosition), Value In Array(Global Variable(CheckpointList), 0)), Global Variable(
-			StartingPositionRadius)), Global Variable(StartingPosition)), 2, Clip Against Surfaces, Visible To Position and String, White,
+		Global.A = False;
+		Global.B = 5;
+		Global.H = 0;
+		Global.Y = Empty Array;
+		Global.StartingPositionRadius = 4;
+		Create In-World Text(Filtered Array(All Players(All Teams), Current Array Element.R != True), String("{0}: {1}", String(
+			"Try Again"), String("Crouching")), Direction Towards(Global.StartingPosition, Global.CheckpointList[0])
+			* Global.StartingPositionRadius + Global.StartingPosition, 2, Clip Against Surfaces, Visible To Position and String, White,
 			Default Visibility);
-		Set Global Variable(MapVoteTimeStart, 900);
-		Set Global Variable(MapVoteDuration, 45);
+		Global.MapVoteTimeStart = 900;
+		Global.MapVoteDuration = 45;
 	}
 }
 
@@ -874,22 +939,20 @@ rule("SETUP: Player Vars")
 
 	actions
 	{
-		Set Player Variable(Event Player, CurrentCheckpointID, 0);
-		Set Player Variable(Event Player, RaceTime, 0);
-		Set Player Variable(Event Player, BestTime, 999.990);
-		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Time", Null, Null, Null), Player Variable(Event Player,
-			RaceTime), Null), Event Player, 2, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
-		Create HUD Text(Event Player, Null, Null, String("{0}: {1}", String("Time", Null, Null, Null), String("{0} sec", Player Variable(
-			Event Player, RaceTime), Null, Null), Null), Left, -10.000, White, Red, White, Visible To and String, Default Visibility);
-		Create HUD Text(Event Player, Null, Null, String("{0}: {1}", String("{0} {1}", String("Best", Null, Null, Null), String("Record",
-			Null, Null, Null), Null), String("{0} sec", Player Variable(Event Player, BestTime), Null, Null), Null), Left, -9.000, White,
-			Red, White, Visible To and String, Default Visibility);
-		Set Player Variable(Event Player, Spawning, True);
-		Create Icon(Filtered Array(Event Player, Or(Not(Is In View Angle(Current Array Element, Value In Array(Global Variable(
-			CheckpointList), Player Variable(Current Array Element, CurrentCheckpointID)), 103)), Not(Is In Line of Sight(Eye Position(
-			Current Array Element), Value In Array(Global Variable(CheckpointList), Player Variable(Current Array Element,
-			CurrentCheckpointID)), Barriers Do Not Block LOS)))), Value In Array(Global Variable(CheckpointList), Player Variable(
-			Event Player, CurrentCheckpointID)), Ring Thick, Visible To and Position, Green, True);
+		Event Player.CurrentCheckpointID = 0;
+		Event Player.RaceTime = 0;
+		Event Player.BestTime = 999.990;
+		Create In-World Text(All Players(All Teams), String("{0}: {1}", String("Time"), Event Player.RaceTime), Event Player, 2,
+			Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
+		Create HUD Text(Event Player, Null, Null, String("{0}: {1}", String("Time"), String("{0} sec", Event Player.RaceTime)), Left, -10,
+			White, Red, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Null, Null, String("{0}: {1}", String("{0} {1}", String("Best"), String("Record")), String("{0} sec",
+			Event Player.BestTime)), Left, -9, White, Red, White, Visible To and String, Default Visibility);
+		Event Player.Spawning = True;
+		Create Icon(Filtered Array(Event Player, !Is In View Angle(Current Array Element,
+			Global.CheckpointList[Current Array Element.CurrentCheckpointID], 103) || !Is In Line of Sight(Eye Position(
+			Current Array Element), Global.CheckpointList[Current Array Element.CurrentCheckpointID], Barriers Do Not Block LOS)),
+			Global.CheckpointList[Event Player.CurrentCheckpointID], Ring Thick, Visible To and Position, Green, True);
 	}
 }
 
@@ -902,8 +965,8 @@ rule("SETUP: Checkpoint Vars")
 
 	actions
 	{
-		Set Global Variable(F, 2);
-		Set Global Variable(CheckpointRadius, 3);
+		Global.F = 2;
+		Global.CheckpointRadius = 3;
 	}
 }
 
@@ -916,17 +979,17 @@ rule("SETUP: Time Records")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", String("Best", Null, Null, Null), String("Times", Null, Null,
-			Null), Null), Null, Right, -5.000, White, Red, White, Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 1, Null, Null), String("{0} - {1}",
-			Value In Array(Global Variable(BestRecordsNameList), 0), String("{0} sec", Value In Array(Global Variable(BestRecordsTimeList),
-			0), Null, Null), Null), Null), Right, -4.000, White, White, White, Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 2, Null, Null), String("{0} - {1}",
-			Value In Array(Global Variable(BestRecordsNameList), 1), String("{0} sec", Value In Array(Global Variable(BestRecordsTimeList),
-			1), Null, Null), Null), Null), Right, -3.000, White, White, White, Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 3, Null, Null), String("{0} - {1}",
-			Value In Array(Global Variable(BestRecordsNameList), 2), String("{0} sec", Value In Array(Global Variable(BestRecordsTimeList),
-			2), Null, Null), Null), Null), Right, -2.000, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", String("Best"), String("Times")), Null, Right, -5, White, Red,
+			White, Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 1), String("{0} - {1}",
+			Global.BestRecordsNameList[0], String("{0} sec", Global.BestRecordsTimeList[0]))), Right, -4, White, White, White,
+			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 2), String("{0} - {1}",
+			Global.BestRecordsNameList[1], String("{0} sec", Global.BestRecordsTimeList[1]))), Right, -3, White, White, White,
+			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 3), String("{0} - {1}",
+			Global.BestRecordsNameList[2], String("{0} sec", Global.BestRecordsTimeList[2]))), Right, -2, White, White, White,
+			Visible To and String, Default Visibility);
 	}
 }
 
@@ -941,12 +1004,12 @@ rule("SETUP: Create Rings")
 
 	actions
 	{
-		Create Effect(Event Player, Good Aura, Green, Value In Array(Global Variable(CheckpointList), Player Variable(Event Player,
-			CurrentCheckpointID)), Global Variable(F), Visible To Position and Radius);
-		Create Effect(Event Player, Good Aura, Yellow, Value In Array(Global Variable(CheckpointList), Add(1, Player Variable(Event Player,
-			CurrentCheckpointID))), Global Variable(F), Visible To Position and Radius);
-		Create Effect(Event Player, Good Aura, Red, Value In Array(Global Variable(CheckpointList), Add(2, Player Variable(Event Player,
-			CurrentCheckpointID))), Global Variable(F), Visible To Position and Radius);
+		Create Effect(Event Player, Good Aura, Green, Global.CheckpointList[Event Player.CurrentCheckpointID], Global.F,
+			Visible To Position and Radius);
+		Create Effect(Event Player, Good Aura, Yellow, Global.CheckpointList[1 + Event Player.CurrentCheckpointID], Global.F,
+			Visible To Position and Radius);
+		Create Effect(Event Player, Good Aura, Red, Global.CheckpointList[2 + Event Player.CurrentCheckpointID], Global.F,
+			Visible To Position and Radius);
 	}
 }
 
@@ -959,18 +1022,18 @@ rule("SETUP: Create Teleporters")
 
 	conditions
 	{
-		Count Of(Global Variable(TeleportEntranceList)) > 0;
+		Count Of(Global.TeleportEntranceList) > 0;
 	}
 
 	actions
 	{
-		Create Effect(All Players(All Teams), Light Shaft, Purple, Add(Value In Array(Global Variable(TeleportEntranceList),
-			Global Variable(LoopIndex)), Vector(0, -1.000, 0)), Global Variable(CheckpointRadius), Visible To);
-		Create Effect(All Players(All Teams), Light Shaft, Blue, Add(Value In Array(Global Variable(TeleportExitList), Global Variable(
-			LoopIndex)), Vector(0, -1.000, 0)), Global Variable(CheckpointRadius), Visible To);
-		Modify Global Variable(LoopIndex, Add, 1);
+		Create Effect(All Players(All Teams), Light Shaft, Purple, Global.TeleportEntranceList[Global.LoopIndex] + Vector(0, -1, 0),
+			Global.CheckpointRadius, Visible To);
+		Create Effect(All Players(All Teams), Light Shaft, Blue, Global.TeleportExitList[Global.LoopIndex] + Vector(0, -1, 0),
+			Global.CheckpointRadius, Visible To);
+		Global.LoopIndex += 1;
 		Wait(0.016, Ignore Condition);
-		Loop If(Compare(Global Variable(LoopIndex), <, Count Of(Global Variable(TeleportEntranceList))));
+		Loop If(Global.LoopIndex < Count Of(Global.TeleportEntranceList));
 	}
 }
 
@@ -983,7 +1046,7 @@ rule("SETUP: Create Spawn Ring")
 
 	actions
 	{
-		Create Effect(All Players(All Teams), Ring, Blue, Global Variable(StartingPosition), Global Variable(StartingPositionRadius),
+		Create Effect(All Players(All Teams), Ring, Blue, Global.StartingPosition, Global.StartingPositionRadius,
 			Visible To Position and Radius);
 	}
 }
@@ -997,7 +1060,7 @@ rule("SETUP: Match Timer")
 
 	conditions
 	{
-		Global Variable(A) == True;
+		Global.A == True;
 	}
 
 	actions
@@ -1017,23 +1080,22 @@ rule("ON: Player Spawning (Disable to stop forced spawns)")
 
 	conditions
 	{
-		Or(Player Variable(Event Player, Spawning), Is Button Held(Event Player, Crouch)) == True;
+		(Event Player.Spawning || Is Button Held(Event Player, Crouch)) == True;
 	}
 
 	actions
 	{
-		Skip If(Not(Is Button Held(Event Player, Crouch)), 1);
-		Set Player Variable(Event Player, R, True);
+		Skip If(!Is Button Held(Event Player, Crouch), 1);
+		Event Player.R = True;
 		Resurrect(Event Player);
-		Skip If(Compare(Global Variable(StartingPosition), ==, 0), 1);
-		Teleport(Event Player, Global Variable(StartingPosition));
-		Set Facing(Event Player, Direction Towards(Global Variable(StartingPosition), Vector(X Component Of(First Of(Global Variable(
-			CheckpointList))), Y Component Of(Position Of(Event Player)), Z Component Of(First Of(Global Variable(CheckpointList))))),
-			To World);
-		Set Player Variable(Event Player, CurrentCheckpointID, 0);
-		Set Player Variable(Event Player, RaceTime, 0);
+		Skip If(Global.StartingPosition == 0, 1);
+		Teleport(Event Player, Global.StartingPosition);
+		Set Facing(Event Player, Direction Towards(Global.StartingPosition, Vector(X Component Of(First Of(Global.CheckpointList)),
+			Y Component Of(Position Of(Event Player)), Z Component Of(First Of(Global.CheckpointList)))), To World);
+		Event Player.CurrentCheckpointID = 0;
+		Event Player.RaceTime = 0;
 		Set Status(Event Player, Null, Phased Out, 9999);
-		Set Player Variable(Event Player, Spawning, False);
+		Event Player.Spawning = False;
 		Wait(0.100, Ignore Condition);
 		Set Status(Event Player, Null, Stunned, 0.200);
 	}
@@ -1051,7 +1113,7 @@ rule("ON: Player Death")
 	actions
 	{
 		Wait(1, Ignore Condition);
-		Set Player Variable(Event Player, Spawning, True);
+		Event Player.Spawning = True;
 	}
 }
 
@@ -1066,15 +1128,14 @@ rule("ON: Collision of Rings")
 
 	conditions
 	{
-		Array Contains(Players Within Radius(Value In Array(Global Variable(CheckpointList), Player Variable(Event Player,
-			CurrentCheckpointID)), Add(Global Variable(CheckpointRadius), 0.500), All Teams, Off), Event Player) == True;
+		Array Contains(Players Within Radius(Global.CheckpointList[Event Player.CurrentCheckpointID], Global.CheckpointRadius + 0.500,
+			All Teams, Off), Event Player) == True;
 	}
 
 	actions
 	{
-		Modify Player Variable(Event Player, CurrentCheckpointID, Add, 1);
-		Small Message(Event Player, String("{0} / {1}", Player Variable(Event Player, CurrentCheckpointID), Count Of(Global Variable(
-			CheckpointList)), Null));
+		Event Player.CurrentCheckpointID += 1;
+		Small Message(Event Player, String("{0} / {1}", Event Player.CurrentCheckpointID, Count Of(Global.CheckpointList)));
 		Play Effect(Event Player, Ring Explosion Sound, White, Event Player, 75);
 	}
 }
@@ -1090,25 +1151,23 @@ rule("ON: Collision with Teleporter")
 
 	conditions
 	{
-		Count Of(Global Variable(TeleportEntranceList)) > 0;
-		Is True For Any(Global Variable(TeleportEntranceList), Compare(Array Contains(Players Within Radius(Current Array Element, Add(
-			Global Variable(CheckpointRadius), 0.500), All Teams, Off), Event Player), ==, True)) == True;
+		Count Of(Global.TeleportEntranceList) > 0;
+		Is True For Any(Global.TeleportEntranceList, Array Contains(Players Within Radius(Current Array Element,
+			Global.CheckpointRadius + 0.500, All Teams, Off), Event Player) == True) == True;
 	}
 
 	actions
 	{
-		Skip If(Compare(Player Variable(Event Player, PlayerLoopIndex), >, 0), 1);
-		Set Player Variable(Event Player, PlayerLoopIndex, Subtract(Count Of(Global Variable(TeleportEntranceList)), 1));
-		Set Player Variable(Event Player, T, Value In Array(Global Variable(TeleportEntranceList), Player Variable(Event Player,
-			PlayerLoopIndex)));
-		Skip If(Compare(Distance Between(Player Variable(Event Player, T), Event Player), <, Add(Global Variable(CheckpointRadius),
-			0.500)), 3);
-		Modify Player Variable(Event Player, PlayerLoopIndex, Subtract, 1);
+		Skip If(Event Player.PlayerLoopIndex > 0, 1);
+		Event Player.PlayerLoopIndex = Count Of(Global.TeleportEntranceList) - 1;
+		Event Player.T = Global.TeleportEntranceList[Event Player.PlayerLoopIndex];
+		Skip If(Distance Between(Event Player.T, Event Player) < Global.CheckpointRadius + 0.500, 3);
+		Event Player.PlayerLoopIndex -= 1;
 		Wait(0.016, Ignore Condition);
-		Loop If(Compare(Player Variable(Event Player, PlayerLoopIndex), >, 0));
-		Big Message(Event Player, String("{0} sec", Player Variable(Event Player, RaceTime), Null, Null));
-		Teleport(Event Player, Value In Array(Global Variable(TeleportExitList), Player Variable(Event Player, PlayerLoopIndex)));
-		Set Player Variable(Event Player, PlayerLoopIndex, 0);
+		Loop If(Event Player.PlayerLoopIndex > 0);
+		Big Message(Event Player, String("{0} sec", Event Player.RaceTime));
+		Teleport(Event Player, Global.TeleportExitList[Event Player.PlayerLoopIndex]);
+		Event Player.PlayerLoopIndex = 0;
 	}
 }
 
@@ -1123,15 +1182,15 @@ rule("ON: Finished Race - Announcement & Respawn")
 
 	conditions
 	{
-		Count Of(Global Variable(CheckpointList)) != 0;
-		Player Variable(Event Player, CurrentCheckpointID) == Count Of(Global Variable(CheckpointList));
-		Global Variable(DebugEnabled) != True;
+		Count Of(Global.CheckpointList) != 0;
+		Event Player.CurrentCheckpointID == Count Of(Global.CheckpointList);
+		Global.DebugEnabled != True;
 	}
 
 	actions
 	{
-		Big Message(Event Player, String("{0}: {1}", String("Finished", Null, Null, Null), Player Variable(Event Player, RaceTime), Null));
-		Set Player Variable(Event Player, Spawning, True);
+		Big Message(Event Player, String("{0}: {1}", String("Finished"), Event Player.RaceTime));
+		Event Player.Spawning = True;
 	}
 }
 
@@ -1146,12 +1205,12 @@ rule("ON: Finished Race - Update Personal Record")
 
 	conditions
 	{
-		Player Variable(Event Player, CurrentCheckpointID) == Count Of(Global Variable(CheckpointList));
+		Event Player.CurrentCheckpointID == Count Of(Global.CheckpointList);
 	}
 
 	actions
 	{
-		Set Player Variable(Event Player, BestTime, Min(Player Variable(Event Player, RaceTime), Player Variable(Event Player, BestTime)));
+		Event Player.BestTime = Min(Event Player.RaceTime, Event Player.BestTime);
 	}
 }
 
@@ -1166,8 +1225,8 @@ rule("ON: Player Leaves Spawn")
 
 	conditions
 	{
-		Distance Between(Global Variable(StartingPosition), Position Of(Event Player)) >= Global Variable(StartingPositionRadius);
-		Player Variable(Event Player, CurrentCheckpointID) <= 0;
+		Distance Between(Global.StartingPosition, Position Of(Event Player)) >= Global.StartingPositionRadius;
+		Event Player.CurrentCheckpointID <= 0;
 	}
 
 	actions
@@ -1187,14 +1246,14 @@ rule("ON: Player In Spawn")
 
 	conditions
 	{
-		Distance Between(Global Variable(StartingPosition), Position Of(Event Player)) < Global Variable(StartingPositionRadius);
-		Player Variable(Event Player, CurrentCheckpointID) <= 0;
+		Distance Between(Global.StartingPosition, Position Of(Event Player)) < Global.StartingPositionRadius;
+		Event Player.CurrentCheckpointID <= 0;
 	}
 
 	actions
 	{
 		Stop Chasing Player Variable(Event Player, RaceTime);
-		Set Player Variable(Event Player, RaceTime, 0);
+		Event Player.RaceTime = 0;
 	}
 }
 
@@ -1214,10 +1273,10 @@ rule("ON: Speedometer (Slow)")
 
 	actions
 	{
-		Destroy HUD Text(Player Variable(Event Player, LastCreatedSpeedometerID));
-		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
-			White, Yellow, Visible To and String, Default Visibility);
-		Set Player Variable(Event Player, LastCreatedSpeedometerID, Last Text ID);
+		Destroy HUD Text(Event Player.LastCreatedSpeedometerID);
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player)), Left, -101, White, White, Yellow,
+			Visible To and String, Default Visibility);
+		Event Player.LastCreatedSpeedometerID = Last Text ID;
 	}
 }
 
@@ -1237,10 +1296,10 @@ rule("ON: Speedometer (Fast)")
 
 	actions
 	{
-		Destroy HUD Text(Player Variable(Event Player, LastCreatedSpeedometerID));
-		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
-			White, Green, Visible To and String, Default Visibility);
-		Set Player Variable(Event Player, LastCreatedSpeedometerID, Last Text ID);
+		Destroy HUD Text(Event Player.LastCreatedSpeedometerID);
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player)), Left, -101, White, White, Green,
+			Visible To and String, Default Visibility);
+		Event Player.LastCreatedSpeedometerID = Last Text ID;
 	}
 }
 
@@ -1253,29 +1312,25 @@ rule("LOOP: Update Records")
 
 	actions
 	{
-		Skip If(Compare(Count Of(All Players(All Teams)), <=, 0), 5);
-		Set Global Variable(BestRecordsNameList, Array Slice(Sorted Array(Filtered Array(Filtered Array(All Players(All Teams),
-			Has Spawned(Current Array Element)), Compare(Player Variable(Current Array Element, BestTime), <, 999.990)), Player Variable(
-			Current Array Element, BestTime)), 0, 3));
-		Skip If(Compare(Count Of(Global Variable(BestRecordsNameList)), >=, 3), 1);
+		Skip If(Count Of(All Players(All Teams)) <= 0, 5);
+		Global.BestRecordsNameList = Array Slice(Sorted Array(Filtered Array(Filtered Array(All Players(All Teams), Has Spawned(
+			Current Array Element)), Current Array Element.BestTime < 999.990), Current Array Element.BestTime), 0, 3);
+		Skip If(Count Of(Global.BestRecordsNameList) >= 3, 1);
 		Modify Global Variable(BestRecordsNameList, Append To Array, Hero(Lúcio));
-		Skip If(Compare(Count Of(Global Variable(BestRecordsNameList)), >=, 3), 1);
+		Skip If(Count Of(Global.BestRecordsNameList) >= 3, 1);
 		Modify Global Variable(BestRecordsNameList, Append To Array, Hero(Lúcio));
-		Skip If(Compare(Count Of(Global Variable(BestRecordsNameList)), >=, 3), 1);
+		Skip If(Count Of(Global.BestRecordsNameList) >= 3, 1);
 		Modify Global Variable(BestRecordsNameList, Append To Array, Hero(Lúcio));
-		Set Global Variable(BestRecordsTimeList, Empty Array);
-		Modify Global Variable(BestRecordsTimeList, Append To Array, Player Variable(Value In Array(Global Variable(BestRecordsNameList),
-			0), BestTime));
-		Modify Global Variable(BestRecordsTimeList, Append To Array, Player Variable(Value In Array(Global Variable(BestRecordsNameList),
-			1), BestTime));
-		Modify Global Variable(BestRecordsTimeList, Append To Array, Player Variable(Value In Array(Global Variable(BestRecordsNameList),
-			2), BestTime));
+		Global.BestRecordsTimeList = Empty Array;
+		Modify Global Variable(BestRecordsTimeList, Append To Array, Global.BestRecordsNameList[0].BestTime);
+		Modify Global Variable(BestRecordsTimeList, Append To Array, Global.BestRecordsNameList[1].BestTime);
+		Modify Global Variable(BestRecordsTimeList, Append To Array, Global.BestRecordsNameList[2].BestTime);
 		Wait(10, Ignore Condition);
 		Loop;
 	}
 }
 
-rule("SETUP: Voting UI")
+disabled rule("SETUP: Voting UI")
 {
 	event
 	{
@@ -1284,23 +1339,23 @@ rule("SETUP: Voting UI")
 
 	actions
 	{
-		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Global Variable(VotingForNewMap), ==, True)), Null, Custom String(
-			"Map Vote", Null, Null, Null), Custom String("Use 'Interact' (F) to toggle your vote", Null, Null, Null), Left, 20, White, Red,
-			White, Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Global Variable(VotingForNewMap), ==, True)), Null, Null,
-			Custom String("Total Votes: {0} / {1}", Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(
-			Current Array Element, VotedForNewMap), ==, True))), Round To Integer(Multiply(Count Of(All Players(All Teams)), 0.500), Up),
-			Null), Left, 21, White, Red, White, Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(All Players(All Teams), Compare(Global Variable(VotingForNewMap), ==, True)), Null, Null,
-			Custom String("Time Remaining: {0} sec", Subtract(Match Time, Subtract(Global Variable(MapVoteTimeStart), Global Variable(
-			MapVoteDuration))), Null, Null), Left, 22, White, Red, White, Visible To and String, Default Visibility);
-		Create HUD Text(Filtered Array(All Players(All Teams), And(Compare(Global Variable(VotingForNewMap), ==, True), Compare(
-			Player Variable(Current Array Element, VotedForNewMap), ==, True))), Null, Null, Custom String("You have voted 'Yes'", Null,
-			Null, Null), Left, 23, White, Red, White, Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Global.VotingForNewMap == True), Null, Custom String("Map Vote"),
+			Custom String("Use 'Interact' (F) to toggle your vote"), Left, 20, White, Red, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Global.VotingForNewMap == True), Null, Null, Custom String(
+			"Total Votes: {0} / {1}", Count Of(Filtered Array(All Players(All Teams), Current Array Element.VotedForNewMap == True)),
+			Round To Integer(Count Of(All Players(All Teams)) * 0.500, Up)), Left, 21, White, Red, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams), Global.VotingForNewMap == True), Null, Null, Custom String(
+			"Time Remaining: {0} sec", Match Time - (Global.MapVoteTimeStart - Global.MapVoteDuration)), Left, 22, White, Red, White,
+			Visible To and String, Default Visibility);
+		Create HUD Text(Filtered Array(All Players(All Teams),
+			Global.VotingForNewMap == True && Current Array Element.VotedForNewMap == True), Null, Null, Custom String(
+			"You have voted 'Yes'"), Left, 23, White, Red, White, Visible To and String, Default Visibility);
 	}
 }
 
-rule("ON: Voting Started")
+disabled rule("ON: Voting Started")
 {
 	event
 	{
@@ -1309,21 +1364,21 @@ rule("ON: Voting Started")
 
 	conditions
 	{
-		Match Time <= Global Variable(MapVoteTimeStart);
-		Global Variable(DebugEnabled) != True;
+		Match Time <= Global.MapVoteTimeStart;
+		Global.DebugEnabled != True;
 		All Players(All Teams) != Host Player;
 	}
 
 	actions
 	{
-		Big Message(All Players(All Teams), Custom String("NEW MAP VOTE STARTED", Null, Null, Null));
-		Set Global Variable(VotingForNewMap, True);
+		Big Message(All Players(All Teams), Custom String("NEW MAP VOTE STARTED"));
+		Global.VotingForNewMap = True;
 		Wait(6, Ignore Condition);
-		Big Message(All Players(All Teams), Custom String("Use 'Interact' (F) to vote!", Null, Null, Null));
+		Big Message(All Players(All Teams), Custom String("Use 'Interact' (F) to vote!"));
 	}
 }
 
-rule("ON: Voted For New Map")
+disabled rule("ON: Voted For New Map")
 {
 	event
 	{
@@ -1334,18 +1389,18 @@ rule("ON: Voted For New Map")
 
 	conditions
 	{
-		Global Variable(VotingForNewMap) == True;
+		Global.VotingForNewMap == True;
 		Is Button Held(Event Player, Interact) == True;
 	}
 
 	actions
 	{
-		Set Player Variable(Event Player, VotedForNewMap, Not(Player Variable(Event Player, VotedForNewMap)));
-		Big Message(Event Player, Custom String("Vote Toggled", Null, Null, Null));
+		Event Player.VotedForNewMap = !Event Player.VotedForNewMap;
+		Big Message(Event Player, Custom String("Vote Toggled"));
 	}
 }
 
-rule("ON: Voting Finished")
+disabled rule("ON: Voting Finished")
 {
 	event
 	{
@@ -1354,17 +1409,35 @@ rule("ON: Voting Finished")
 
 	conditions
 	{
-		Match Time <= Subtract(Global Variable(MapVoteTimeStart), Global Variable(MapVoteDuration));
+		Match Time <= Global.MapVoteTimeStart - Global.MapVoteDuration;
 	}
 
 	actions
 	{
-		Set Global Variable(VotingForNewMap, False);
-		Skip If(Compare(Count Of(Filtered Array(All Players(All Teams), Compare(Player Variable(Current Array Element, VotedForNewMap), ==,
-			True))), >=, Multiply(Count Of(All Players(All Teams)), 0.500)), 2);
-		Big Message(All Players(All Teams), Custom String("Vote Failed", Null, Null, Null));
+		Global.VotingForNewMap = False;
+		Skip If(Count Of(Filtered Array(All Players(All Teams), Current Array Element.VotedForNewMap == True)) >= Count Of(All Players(
+			All Teams)) * 0.500, 2);
+		Big Message(All Players(All Teams), Custom String("Vote Failed"));
 		Abort;
-		Big Message(All Players(All Teams), Custom String("Vote Successful - 60 seconds remain", Null, Null, Null));
+		Big Message(All Players(All Teams), Custom String("Vote Successful - 60 seconds remain"));
 		Set Match Time(60);
+	}
+}
+
+rule("ENABLE FOR FAST ROUNDS")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+	}
+
+	actions
+	{
+		Set Match Time(420);
 	}
 }
