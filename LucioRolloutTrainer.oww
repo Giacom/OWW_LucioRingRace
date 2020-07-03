@@ -96,7 +96,7 @@ rule("Crouch = Reset")
 	actions
 	{
 		Respawn(Event Player);
-		Set Player Variable(Event Player, Timer, 0);
+		Event Player.Timer = 0;
 		Chase Player Variable At Rate(Event Player, Timer, 9999, 1, None);
 	}
 }
@@ -112,11 +112,11 @@ rule("Player Init")
 
 	actions
 	{
-		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
-			White, Green, Visible To and String, Default Visibility);
-		Set Player Variable(Event Player, LastCreatedSpeedometerID, Last Text ID);
-		Create HUD Text(Event Player, Null, Null, String("{0} sec", Player Variable(Event Player, Timer), Null, Null), Left, -100.000,
-			White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player)), Left, -101, White, White, Green,
+			Visible To and String, Default Visibility);
+		Event Player.LastCreatedSpeedometerID = Last Text ID;
+		Create HUD Text(Event Player, Null, Null, String("{0} sec", Event Player.Timer), Left, -100, White, White, White,
+			Visible To and String, Default Visibility);
 	}
 }
 
@@ -140,9 +140,9 @@ rule("Init")
 		Wait(5, Ignore Condition);
 		Set Match Time(3599);
 		Wait(1, Ignore Condition);
-		Create Dummy Bot(Hero(Lúcio), Opposite Team Of(Team Of(Host Player)), -1.000, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Lúcio), Opposite Team Of(Team Of(Host Player)), -1, Vector(0, 0, 0), Vector(0, 0, 0));
 		Pause Match Time;
-		Set Objective Description(All Players(All Teams), Custom String("", Null, Null, Null), Visible To and String);
+		Set Objective Description(All Players(All Teams), Custom String(""), Visible To and String);
 	}
 }
 
@@ -162,10 +162,10 @@ rule("F = Next Point")
 
 	actions
 	{
-		Set Global Variable(P, Payload Position);
+		Global.P = Payload Position;
 		Skip If(Is On Objective(Players In Slot(0, Opposite Team Of(Team Of(Host Player)))), 5);
-		Skip If(Compare(Payload Position, ==, Null), 2);
-		Teleport(All Living Players(Opposite Team Of(Team Of(Event Player))), Add(Payload Position, Vector(0, 1.500, 0)));
+		Skip If(Payload Position == Null, 2);
+		Teleport(All Living Players(Opposite Team Of(Team Of(Event Player))), Payload Position + Vector(0, 1.500, 0));
 		Skip(1);
 		Teleport(All Living Players(Opposite Team Of(Team Of(Event Player))), Objective Position(Objective Index));
 		Skip(1);
@@ -189,10 +189,10 @@ rule("ON: Speedometer (Slow)")
 
 	actions
 	{
-		Destroy HUD Text(Player Variable(Event Player, LastCreatedSpeedometerID));
-		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
-			White, Yellow, Visible To and String, Default Visibility);
-		Set Player Variable(Event Player, LastCreatedSpeedometerID, Last Text ID);
+		Destroy HUD Text(Event Player.LastCreatedSpeedometerID);
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player)), Left, -101, White, White, Yellow,
+			Visible To and String, Default Visibility);
+		Event Player.LastCreatedSpeedometerID = Last Text ID;
 	}
 }
 
@@ -212,10 +212,10 @@ rule("ON: Speedometer (Fast)")
 
 	actions
 	{
-		Destroy HUD Text(Player Variable(Event Player, LastCreatedSpeedometerID));
-		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player), Null, Null), Left, -101.000, White,
-			White, Green, Visible To and String, Default Visibility);
-		Set Player Variable(Event Player, LastCreatedSpeedometerID, Last Text ID);
+		Destroy HUD Text(Event Player.LastCreatedSpeedometerID);
+		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player)), Left, -101, White, White, Green,
+			Visible To and String, Default Visibility);
+		Event Player.LastCreatedSpeedometerID = Last Text ID;
 	}
 }
 
@@ -236,6 +236,6 @@ rule("ON: Touching point")
 	actions
 	{
 		Stop Chasing Player Variable(Event Player, Timer);
-		disabled Big Message(Event Player, String("{0} sec", Player Variable(Event Player, Timer), Null, Null));
+		disabled Big Message(Event Player, String("{0} sec", Event Player.Timer));
 	}
 }
