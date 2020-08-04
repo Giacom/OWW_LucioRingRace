@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "v1.9: Game mode for Lucios to race to the finish line with a little bit of wallriding skill! - Initially created by waycoolway - Heavily updated by Giacomand - Additional maps by Fahzix - https://workshop.elohell.gg/uOi5fgHDI/"
+		Description: "v1.10: Game mode for Lucios to race to the finish line with a little bit of wallriding skill! - Initially created by waycoolway - Heavily updated by Giacomand - Additional maps by Fahzix - https://workshop.elohell.gg/uOi5fgHDI/"
 	}
 
 	lobby
@@ -94,6 +94,7 @@ variables
 		7: RaceTime
 		11: PlayerLoopIndex
 		12: LastCreatedSpeedometerID
+		17: RespawningSelf
 		18: Spawning
 		21: VotedForNewMap
 		23: InSavingMode
@@ -914,8 +915,8 @@ rule("SETUP: Global Vars")
 		Global.H = 0;
 		Global.Y = Empty Array;
 		Global.StartingPositionRadius = 4;
-		Create In-World Text(Filtered Array(All Players(All Teams), Current Array Element.R != True), String("{0}: {1}", String(
-			"Try Again"), String("Crouching")), Direction Towards(Global.StartingPosition, Global.CheckpointList[0])
+		Create In-World Text(Filtered Array(All Players(All Teams), Current Array Element.RespawningSelf != True), String("{0}: {1}",
+			String("Try Again"), String("Crouching")), Direction Towards(Global.StartingPosition, Global.CheckpointList[0])
 			* Global.StartingPositionRadius + Global.StartingPosition, 2, Clip Against Surfaces, Visible To Position and String, White,
 			Default Visibility);
 		Global.MapVoteTimeStart = 900;
@@ -1086,7 +1087,7 @@ rule("ON: Player Spawning (Disable to stop forced spawns)")
 	actions
 	{
 		Skip If(!Is Button Held(Event Player, Crouch), 1);
-		Event Player.R = True;
+		Event Player.RespawningSelf = True;
 		Resurrect(Event Player);
 		Skip If(Global.StartingPosition == 0, 1);
 		Teleport(Event Player, Global.StartingPosition);
@@ -1097,7 +1098,7 @@ rule("ON: Player Spawning (Disable to stop forced spawns)")
 		Set Status(Event Player, Null, Phased Out, 9999);
 		Event Player.Spawning = False;
 		Wait(0.100, Ignore Condition);
-		Set Status(Event Player, Null, Stunned, 0.200);
+		Set Ability Cooldown(Event Player, Button(Ability 2), 0);
 	}
 }
 
