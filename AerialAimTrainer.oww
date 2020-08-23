@@ -239,14 +239,14 @@ rule("INIT: Global")
 		Create Effect(All Players(All Teams), Sphere, Blue, Global.BackwardButton, 1, Visible To Position and Radius);
 		Create In-World Text(All Players(All Teams), String("Backward"), Global.BackwardButton, 1, Clip Against Surfaces,
 			Visible To Position and String, White, Default Visibility);
-		Global.SetRandomFacingButton = Vector(0, 2.500, -73);
+		Global.SetRandomFacingButton = Vector(0, 2.500, -73.500);
 		Global.SetRandomFacing = False;
 		Create In-World Text(All Players(All Teams), Custom String("Random Direction Bots: {0}", Global.SetRandomFacing),
 			Global.SetRandomFacingButton, 1, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
 		Create Effect(All Players(All Teams), Sphere, Lime Green, Global.SetRandomFacingButton, 1, Visible To Position and Radius);
 		Global.JumpPadPosition = Vector(1.315, 0.400, -73.589);
 		Create Effect(All Players(All Teams), Ring, Green, Global.JumpPadPosition, 1, Visible To Position and Radius);
-		Global.UnlimitedAmmoButton = Vector(0, 5, -73);
+		Global.UnlimitedAmmoButton = Vector(0, 5, -73.500);
 		Global.UnlimitedAmmo = False;
 		Create In-World Text(All Players(All Teams), Custom String("Infinite* Ammo", Global.UnlimitedAmmoButton),
 			Global.UnlimitedAmmoButton, 1, Clip Against Surfaces, Visible To Position and String, White, Default Visibility);
@@ -466,6 +466,7 @@ rule("Set Infinite Ammo")
 		Set Ammo(Event Player, 0, 999);
 		Set Max Ammo(Event Player, 1, 999);
 		Set Ammo(Event Player, 1, 999);
+		Play Effect(Event Player, Explosion Sound, White, Event Player, 50);
 	}
 }
 
