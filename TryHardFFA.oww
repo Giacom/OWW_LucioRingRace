@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "24/7 TryHard FFA by /u/Giacomand"
+		Description: "TryHard FFA by /u/Giacomand - https://workshop.codes/try-hard-ffa"
 	}
 
 	lobby
@@ -85,13 +85,7 @@ settings
 	}
 }
 
-variables
-{
-	global:
-		0: HEAL_AMOUNT
-}
-
-rule("CONFIG")
+rule("Global Init")
 {
 	event
 	{
@@ -100,7 +94,27 @@ rule("CONFIG")
 
 	actions
 	{
-		Global.HEAL_AMOUNT = 100;
+		Set Objective Description(All Players(All Teams), Custom String("TRY HARD FFA - CODE: RCF13"), Visible To and String);
+		Create HUD Text(All Players(All Teams), Null, Custom String("TRY HARD FFA - CODE: RCF13"), Null, Top, -1, White, Red, White,
+			Visible To and String, Visible Never);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0}:{1}", Round To Integer(Match Time / 60, Down), Round To Integer(
+			Match Time % 60, Down) >= 10 ? Round To Integer(Match Time % 60, Down) : Custom String("0{0}", Round To Integer(
+			Match Time % 60, Down))), Top, -0.500, White, White, White, Visible To and String, Visible Never);
+	}
+}
+
+rule("Player Init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Disable Game Mode HUD(Event Player);
 	}
 }
 
@@ -153,7 +167,7 @@ rule("Heal on Kill")
 
 	actions
 	{
-		Heal(Event Player, Null, Global.HEAL_AMOUNT);
+		Heal(Event Player, Null, Workshop Setting Integer(Custom String("Healing"), Custom String("Heal On Kill"), 200, 0, 1000));
 	}
 }
 
@@ -188,5 +202,7 @@ rule("Match Timer Reaches 0")
 	actions
 	{
 		Declare Player Victory(Last Of(Sorted Array(All Players(All Teams), Score Of(Current Array Element))));
+		Wait(10, Ignore Condition);
+		Declare Match Draw;
 	}
 }
