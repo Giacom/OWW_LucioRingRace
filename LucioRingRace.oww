@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "v1.12: Game mode for Lucios to race to the finish line with a little bit of wallriding skill! - Initially created by waycoolway - Heavily updated by Giacomand - Additional maps by Fahzix - https://workshop.elohell.gg/uOi5fgHDI/"
+		Description: "v1.14: Lucio Ring Race! Speed through the rings to get the best time! - Initially created by waycoolway - Heavily updated by Giacomand - Additional maps by Fahzix - https://workshop.elohell.gg/uOi5fgHDI/"
 	}
 
 	lobby
@@ -30,6 +30,7 @@ settings
 			enabled maps
 			{
 				Eichenwalde
+				Hanamura
 				Havana
 				Hollywood
 				King's Row
@@ -99,6 +100,11 @@ variables
 		25: BestTime
 }
 
+subroutines
+{
+	0: UpdateLeaderboard
+}
+
 disabled rule("DEBUG: Enable Debug? (Enable this rule to enable debug mode)")
 {
 	event
@@ -134,8 +140,8 @@ rule("DEBUG: Setup Global Debug")
 			Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String(
 			"Primary Fire: Select new checkpoint location - Secondary Fire: Save selected checkpoint location"), Custom String(
-			"Soundwave: Undo last save - Ultimate: Put saved checkpoints into play - Ult Status: Toggle save mode"), Right, 0, Color(
-			White), Color(White), Color(White), Visible To and String, Default Visibility);
+			"Interact: Undo last save - Ultimate: Put saved checkpoints into play - Ult Status: Toggle save mode"), Right, 0, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
 		Set Match Time(3599);
 	}
 }
@@ -195,13 +201,36 @@ rule("DEBUG: Display Coordinates")
 	{
 		Create HUD Text(All Players(All Teams), Null, Event Player, Event Player.NewCheckpointLocation, Left, 0, Color(White), Color(Blue),
 			Color(White), Visible To and String, Default Visibility);
-		Global.MapEditorCheckpointList = Empty Array;
+		If(Global.MapEditorCheckpointList == 0);
+			Global.MapEditorCheckpointList = Empty Array;
+		End;
 		Create HUD Text(Event Player, Null, Custom String("Saving Mode:"), Event Player.InSavingMode, Right, 10, Color(Red), Color(Red),
 			Color(White), Visible To and String, Default Visibility);
 		Event Player.InSavingMode = False;
 		Event Player.NewCheckpointLocation = Vector(0, 0, 0);
 		Event Player.D = Vector(0, 0, 0);
 		Event Player.E = Vector(0, 0, 0);
+	}
+}
+
+rule("DEBUG: Set Starting Position")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Hello) == True;
+	}
+
+	actions
+	{
+		Global.StartingPosition = Position Of(Event Player);
+		Play Effect(All Players(All Teams), Ring Explosion Sound, Color(Green), Event Player, 75);
 	}
 }
 
@@ -408,7 +437,6 @@ rule("ON: Assembling Heroes")
 	actions
 	{
 		Set Match Time(0);
-		Disable Built-In Game Mode Completion;
 	}
 }
 
@@ -734,7 +762,7 @@ rule("MAP: Numbani Rings by Giacomand")
 		Modify Global Variable(CheckpointList, Append To Array, Vector(219, 1, 38));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(219, 1, 8));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(187.699, 2.022, 2.047));
-		Modify Global Variable(CheckpointList, Append To Array, Vector(142.072, 0.000, 11.495));
+		Modify Global Variable(CheckpointList, Append To Array, Vector(142.072, 0, 11.495));
 		Modify Global Variable(CheckpointList, Append To Array, Vector(101, -0.500, 21));
 		Skip If(True == False, 0);
 	}
@@ -901,6 +929,37 @@ rule("MAP: Hollywood Rings by Giacomand")
 	}
 }
 
+rule("MAP: Hanamura Rings by Giacomand")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Current Map == Map(Hanamura);
+	}
+
+	actions
+	{
+		Global.TeleportEntranceList = Empty Array;
+		Global.TeleportExitList = Empty Array;
+		Global.CheckpointList = Empty Array;
+		disabled Global.StartingPosition = Vector(-14.711, 2.175, -103.115);
+		disabled Global.CheckpointList = Array(Vector(11, 5.500, -76), Vector(30.217, 12.053, -47.019), Vector(34.500, 11.009, -23), Vector(8.111,
+			9.015, -18.504), Vector(-27.042, 9, -17), Vector(-47.072, 1.330, -12.174));
+		Global.StartingPosition = Vector(-35.554, 1, -83.217);
+		disabled Global.MapEditorCheckpointList = Array(Vector(-23, 2.500, -83), Vector(-24.707, 3, -69.707), Vector(-13.499, 8.029, -20.036),
+			Vector(-4.010, 9.500, 11.035), Vector(14.896, 11.713, 15.684), Vector(29, 19, 0), Vector(4.994, 7.965, -12.500), Vector(
+			-27.031, 9, -17.500), Vector(-47.405, 2.796, -12.111));
+		Global.CheckpointList = Array(Vector(-23, 2.500, -83), Vector(-24.707, 3, -69.707), Vector(-13.499, 8.029, -20.036), Vector(-4.010,
+			9.500, 11.035), Vector(14.896, 11.713, 15.684), Vector(29, 19, 0), Vector(22.503, 20.055, -10.015), Vector(31.500, 12.006,
+			-54.990), Vector(46.707, 6.016, -75.293), Vector(60.854, 5, -77.032), Vector(71.567, 5, -59.558), Vector(42.083, 8.016,
+			-40.996), Vector(-11.993, 8.007, -29), Vector(-27.969, 9, -22.500), Vector(-46.608, 1.495, -12.260));
+	}
+}
+
 rule("SETUP: Global Vars")
 {
 	event
@@ -921,6 +980,10 @@ rule("SETUP: Global Vars")
 			White), Default Visibility);
 		Global.MapVoteTimeStart = 900;
 		Global.MapVoteDuration = 45;
+		Disable Built-In Game Mode Completion;
+		Set Objective Description(All Players(All Teams), Custom String("RACE"), Visible To and String);
+		Create HUD Text(All Players(All Teams), Null, Custom String("LUCIO RING RACE - CODE: PE3A4"), Null, Top, -1, Color(Green), Color(
+			Green), Color(Green), Visible To and String, Visible Always);
 	}
 }
 
@@ -992,6 +1055,8 @@ rule("SETUP: Time Records")
 		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", String("#{0}", 3), String("{0} - {1}",
 			Global.BestRecordsNameList[2], String("{0} sec", Global.BestRecordsTimeList[2]))), Right, -2, Color(White), Color(White),
 			Color(White), Visible To and String, Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), Null, Null, String("{0}: {1}", Custom String("CODE"), Custom String("PE3A4")), Top, -10,
+			Color(Yellow), Color(Yellow), Color(Yellow), Visible To and String, Default Visibility);
 	}
 }
 
@@ -1214,6 +1279,7 @@ rule("ON: Finished Race - Update Personal Record")
 	actions
 	{
 		Event Player.BestTime = Min(Event Player.RaceTime, Event Player.BestTime);
+		Call Subroutine(UpdateLeaderboard);
 	}
 }
 
@@ -1260,7 +1326,7 @@ rule("ON: Player In Spawn")
 	}
 }
 
-rule("ON: Speedometer (Slow)")
+rule("ON: Speedometer")
 {
 	event
 	{
@@ -1271,65 +1337,46 @@ rule("ON: Speedometer (Slow)")
 
 	conditions
 	{
-		Horizontal Speed Of(Event Player) <= 12;
+		disabled Horizontal Speed Of(Event Player) <= 12;
 	}
 
 	actions
 	{
-		Destroy HUD Text(Event Player.LastCreatedSpeedometerID);
+		disabled Destroy HUD Text(Event Player.LastCreatedSpeedometerID);
 		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player)), Left, -101, Color(White), Color(
-			White), Color(Yellow), Visible To and String, Default Visibility);
-		Event Player.LastCreatedSpeedometerID = Last Text ID;
+			White), Horizontal Speed Of(Event Player) >= 12 ? Color(Green) : Color(Yellow), Visible To String and Color,
+			Default Visibility);
+		disabled Event Player.LastCreatedSpeedometerID = Last Text ID;
 	}
 }
 
-rule("ON: Speedometer (Fast)")
+rule("ON: Update Records")
 {
 	event
 	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Horizontal Speed Of(Event Player) > 12;
+		Subroutine;
+		UpdateLeaderboard;
 	}
 
 	actions
 	{
-		Destroy HUD Text(Event Player.LastCreatedSpeedometerID);
-		Create HUD Text(Event Player, Null, Null, String("{0} m/s", Horizontal Speed Of(Event Player)), Left, -101, Color(White), Color(
-			White), Color(Green), Visible To and String, Default Visibility);
-		Event Player.LastCreatedSpeedometerID = Last Text ID;
-	}
-}
-
-rule("LOOP: Update Records")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	actions
-	{
-		Skip If(Count Of(All Players(All Teams)) <= 0, 5);
 		Global.BestRecordsNameList = Array Slice(Sorted Array(Filtered Array(Filtered Array(All Players(All Teams), Has Spawned(
 			Current Array Element)), Current Array Element.BestTime < 999.990), Current Array Element.BestTime), 0, 3);
-		Skip If(Count Of(Global.BestRecordsNameList) >= 3, 1);
-		Modify Global Variable(BestRecordsNameList, Append To Array, Hero(Lúcio));
-		Skip If(Count Of(Global.BestRecordsNameList) >= 3, 1);
-		Modify Global Variable(BestRecordsNameList, Append To Array, Hero(Lúcio));
-		Skip If(Count Of(Global.BestRecordsNameList) >= 3, 1);
-		Modify Global Variable(BestRecordsNameList, Append To Array, Hero(Lúcio));
-		Global.BestRecordsTimeList = Empty Array;
-		Modify Global Variable(BestRecordsTimeList, Append To Array, Global.BestRecordsNameList[0].BestTime);
-		Modify Global Variable(BestRecordsTimeList, Append To Array, Global.BestRecordsNameList[1].BestTime);
-		Modify Global Variable(BestRecordsTimeList, Append To Array, Global.BestRecordsNameList[2].BestTime);
-		Wait(10, Ignore Condition);
-		Loop;
+		Global.BestRecordsTimeList[0] = Global.BestRecordsNameList[0].BestTime;
+		Global.BestRecordsTimeList[1] = Global.BestRecordsNameList[1].BestTime;
+		Global.BestRecordsTimeList[2] = Global.BestRecordsNameList[2].BestTime;
+		If(Global.BestRecordsNameList[0] == Null);
+			Global.BestRecordsNameList[0] = Hero(Lúcio);
+			Global.BestRecordsTimeList[0] = 999.990;
+		End;
+		If(Global.BestRecordsNameList[1] == Null);
+			Global.BestRecordsNameList[1] = Hero(Lúcio);
+			Global.BestRecordsTimeList[1] = 999.990;
+		End;
+		If(Global.BestRecordsNameList[2] == Null);
+			Global.BestRecordsNameList[2] = Hero(Lúcio);
+			Global.BestRecordsTimeList[2] = 999.990;
+		End;
 	}
 }
 
@@ -1437,10 +1484,47 @@ rule("ENABLE FOR FAST ROUNDS")
 	conditions
 	{
 		Is Game In Progress == True;
+		Global.DebugEnabled == False;
 	}
 
 	actions
 	{
 		Set Match Time(420);
+	}
+}
+
+rule("ON: End Game")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Match Time <= 0;
+	}
+
+	actions
+	{
+		Big Message(All Players(All Teams), String("{0} {1}", Global.BestRecordsNameList[0], String("Wins")));
+		Wait(5, Ignore Condition);
+		disabled Declare Match Draw;
+		Enable Built-In Game Mode Completion;
+	}
+}
+
+rule("ON: Player Leaves")
+{
+	event
+	{
+		Player Left Match;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Call Subroutine(UpdateLeaderboard);
 	}
 }
